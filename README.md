@@ -17,15 +17,18 @@ an infinite zoomable canvas, a layer-based document model, reusable components,
 real-time multiplayer, commenting, version history, and developer handoff into a
 single tool that runs entirely in the browser with no install.
 
-This repository is the engineering monorepo. **Sprints 0–5 are complete:** the
+This repository is the engineering monorepo. **Sprints 0–6 are complete:** the
 toolchain (0), `@vectorforge/geometry` (1), the `@vectorforge/document` scene
 graph (2), `@vectorforge/commands` undo/redo (3), `@vectorforge/editor` — the
 framework-independent editor core (controller, observable store, selection,
 viewport, tool state machine, hit-testing) that wires document + commands into a
-headless, driveable editor (4), and `@vectorforge/renderer` — the `IRenderer`
+headless, driveable editor (4), `@vectorforge/renderer` — the `IRenderer`
 port, the culled/z-sorted `RenderScene` projection, the Canvas2D backend, and the
-rAF-coalesced frame scheduler (5). Wiring the renderer into the React shell comes
-with the interaction + UI sprints. Work continues per [docs/ROADMAP.md](./docs/ROADMAP.md).
+rAF-coalesced frame scheduler (5), and the **interaction system** (6) — precise
+two-phase hit-testing with overlap cycling, transform handles + resize, the
+modifier system, drag threshold, hover/cursor, arrow-nudge, and smart alignment
+guides, all still headless. Wiring it into the React shell is the next (UI) sprint.
+Work continues per [docs/ROADMAP.md](./docs/ROADMAP.md).
 
 ## Vision
 
@@ -180,7 +183,7 @@ Target one package with pnpm filters, e.g. `pnpm --filter @vectorforge/web dev`.
 | **3** ✅ | Command system & history (undo/redo)                               |
 | **4** ✅ | Editor core & state management                                     |
 | **5** ✅ | Rendering engine (Canvas2D behind `IRenderer`)                     |
-| 6        | Interaction system (selection, transform, shortcuts)               |
+| **6** ✅ | Interaction system (selection, transform, shortcuts)               |
 | 7        | UI integration (React chrome)                                      |
 | 8        | Persistence & `.vf` file format                                    |
 | 9        | Performance optimization (10k+ nodes, 60 FPS)                      |

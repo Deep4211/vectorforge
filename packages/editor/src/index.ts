@@ -12,9 +12,21 @@
 
 export { EditorController, type EditorControllerOptions } from './controller';
 export { EditorStore } from './store';
-export { hitTest, marqueeHits, type HitOptions } from './hit-test';
-export { type Tool, type ToolHost } from './tool';
-export { createDefaultTools } from './tools';
+export { hitTest, hitTestAll, marqueeHits, type HitOptions } from './hit-test';
+export {
+  selectionWorldBounds,
+  handleScreenPoints,
+  hitTestHandle,
+  resizeRect,
+  HANDLE_POSITIONS,
+  HANDLE_HIT_RADIUS,
+  type HandlePosition,
+  type ResizeOptions,
+} from './handles';
+export { alignmentGuides, type AlignmentGuide, type GuideOrientation } from './guides';
+export { resolveCursor, type CursorContext } from './cursor';
+export { type Tool, type ToolHost, type TransformModifiers } from './tool';
+export { createDefaultTools, DRAG_THRESHOLD_PX } from './tools';
 export {
   type ToolId,
   type Modifiers,
@@ -25,6 +37,7 @@ export {
   type SelectionState,
   type InteractionPhase,
   type Draft,
+  type RectLikeXYWH,
   type EditorState,
   type RenderScheduler,
   NO_MODIFIERS,

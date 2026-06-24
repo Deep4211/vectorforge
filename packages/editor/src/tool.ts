@@ -1,6 +1,15 @@
 import type { Point, Rectangle, Vector2, Viewport } from '@vectorforge/geometry';
 import type { NodeId } from '@vectorforge/document';
+import type { HandlePosition } from './handles';
 import type { Draft, EditorState, EngineInput, InteractionPhase, ToolId } from './types';
+
+/** Modifier flags that shape a transform gesture (ARCHITECTURE.md §9.3). */
+export interface TransformModifiers {
+  /** Shift: aspect-lock on resize. */
+  readonly aspect: boolean;
+  /** Alt/Option: resize from the center. */
+  readonly fromCenter: boolean;
+}
 
 /**
  * The slice of the controller a tool may use (ARCHITECTURE.md §4.5). Depending
@@ -14,6 +23,8 @@ export interface ToolHost {
   hitTest(world: Point): NodeId | null;
   select(id: NodeId): void;
   toggleSelect(id: NodeId): void;
+  /** Select the node under `world`, cycling through overlapping nodes on repeat clicks (§8.1). */
+  selectCycle(world: Point, additive: boolean): NodeId | null;
   clearSelection(): void;
   selectMarquee(rect: Rectangle, additive: boolean): void;
   moveSelectionBy(delta: Vector2): void;
@@ -23,6 +34,15 @@ export interface ToolHost {
   setDragOffset(offset: Vector2): void;
   cancelGesture(): void;
   setViewport(viewport: Viewport): void;
+  updateHover(world: Point, screen: Point): void;
+  /** The handle under `screen` for the current selection, or `null`. */
+  hitTestHandle(screen: Point): HandlePosition | null;
+  /** Start a resize from `handle` at world point `world`; false if the primary node can't resize. */
+  beginResize(handle: HandlePosition, world: Point): boolean;
+  /** Update the live resize preview to the current world point. */
+  updateResize(world: Point, modifiers: TransformModifiers): void;
+  /** Commit the in-progress resize as one (move+resize) history entry. */
+  commitResize(): void;
 }
 
 /** One active tool owns pointer interpretation; switching tools cancels any in-progress gesture. */

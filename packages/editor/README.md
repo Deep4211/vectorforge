@@ -1,6 +1,6 @@
 # @vectorforge/editor
 
-> Layer: **application** · Status: **implemented (Sprint 4)** · Dependencies: commands, document, geometry, shared
+> Layer: **application** · Status: **implemented (Sprints 4 + 6)** · Dependencies: commands, document, geometry, shared
 
 The editor core — the framework-independent heart of VectorForge (ARCHITECTURE.md
 §4; ENGINE_CONTRACT.md §4). It turns user **intentions** into **commands** against
@@ -20,8 +20,17 @@ React, no DOM** (EDT-1).
 - **Tool state machine** — `move` / `frame` / `rectangle` / `ellipse` / `text` /
   `hand`, driven by framework-agnostic `EngineInput`. Switching tools cancels any
   in-progress gesture (EDT-7).
-- **Hit-testing** — `hitTest` (front-to-back, lock/visibility-aware) and
-  `marqueeHits` over world-space bounds.
+- **Hit-testing** (§8.4) — two-phase, front-to-back: a broad-phase world-AABB
+  prune then a precise **narrow phase** in each node's local space (rounded-rect,
+  ellipse, rotated geometry, line stroke-proximity). `hitTest` (topmost),
+  `hitTestAll` (z-ordered, for overlap cycling), and `marqueeHits`.
+- **Transform handles** (§9) — `selectionWorldBounds` + eight screen-space
+  handles (`handleScreenPoints` / `hitTestHandle`) and the pure `resizeRect` math
+  (aspect-lock, resize-from-center). A resize commits one move+resize history entry.
+- **Interaction** — overlapping-click cycling, a drag threshold (sub-4px = click),
+  Shift axis-lock on move, hover + `resolveCursor`, arrow-key nudge (×10 with
+  Shift), an IME guard, and V1 **alignment guides** (`alignmentGuides`: gaps +
+  center to the parent frame).
 
 ## What you can drive (headless)
 
@@ -51,9 +60,11 @@ editor.handlePointerDown({
 
 Intentions: `createShape`/`createText`, `moveSelectionBy`, `setProperty`,
 `deleteSelection`, `group`/`ungroup`, `bringToFront`/`sendToBack`/`bringForward`/
-`sendBackward`, `undo`/`redo`. Selection (ephemeral): `select`/`toggleSelect`/
-`selectMany`/`selectMarquee`/`clearSelection`. Viewport: `setViewport`/`panBy`/
-`zoomAt`. Input: `handlePointerDown/Move/Up`, `handleKeyboard`, `setTool`.
+`sendBackward`, `undo`/`redo`. Resize: `beginResize`/`updateResize`/`commitResize`.
+Selection (ephemeral): `select`/`toggleSelect`/`selectMany`/`selectCycle`/
+`selectMarquee`/`clearSelection`. Query/overlay: `selectionBounds`/`hitTestHandle`/
+`guides`/`updateHover`/`cursor`. Viewport: `setViewport`/`panBy`/`zoomAt`. Input:
+`handlePointerDown/Move/Up`, `handleKeyboard` (shortcuts + arrow-nudge), `setTool`.
 
 ## Boundaries
 
@@ -63,10 +74,17 @@ shortcuts are suppressed while a text input is focused, except Escape (EDT-8).
 
 ## Scope notes
 
-Hit-testing uses world-space AABBs (exact for unrotated nodes); the spatial index
-and precise narrow phase arrive in Sprint 6. Live drag is previewed via an
-ephemeral `dragOffset` and committed as one command on release (Sprint 6 adds
-snapping/handles). There is still no rendering — pixels arrive in Sprint 5.
+Interaction is **headless** here: raw Pointer-Event → `EngineInput` normalization
+(`handlePointerDown/Move/Up/Cancel` consume already-normalized input), the command
+palette, and the visual overlay (handles/guides/marquee rendering) land in
+Sprint 7 (UI). Hit-testing is a linear front-to-back scan; the spatial
+acceleration index is Sprint 9 (performance). Resize runs in the node's **own
+local frame**, so rotated/scaled nodes resize correctly; the handle _overlay_,
+however, is drawn on the selection's world AABB, so for a rotated node the handle
+markers sit on the bounding box rather than the rotated edge — refined alongside
+the V2 rotation handle. Alt-duplicate-on-drag is V2; resize tracks the **primary**
+node of a multi-selection. Live drag/resize preview is ephemeral (`dragOffset` /
+`resizePreview`) and committed as one command on release.
 
 ## Testing
 

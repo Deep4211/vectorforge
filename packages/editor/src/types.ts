@@ -1,5 +1,6 @@
 import type { Vector2, Viewport } from '@vectorforge/geometry';
 import type { NodeId } from '@vectorforge/document';
+import type { HandlePosition } from './handles';
 
 /**
  * Editor-core types (ARCHITECTURE.md §4; ENGINE_CONTRACT.md §4).
@@ -42,6 +43,8 @@ export interface KeyInput {
   readonly modifiers: Modifiers;
   /** True when focus is in a text input/textarea; single-key shortcuts are suppressed. */
   readonly inTextInput: boolean;
+  /** True mid-IME composition; ALL shortcuts (even Escape) are suppressed (EDT-8). */
+  readonly isComposing?: boolean;
 }
 
 /** The selection: an ordered, de-duplicated id set plus the "primary" (last-added) node. */
@@ -53,14 +56,22 @@ export interface SelectionState {
 export const EMPTY_SELECTION: SelectionState = { ids: [], primaryId: null };
 
 /** What gesture, if any, is in progress. */
-export type InteractionPhase = 'idle' | 'drawing' | 'dragging' | 'panning' | 'marquee';
+export type InteractionPhase = 'idle' | 'drawing' | 'dragging' | 'panning' | 'marquee' | 'resizing';
+
+/** A world-space rectangle, used for drafts and resize previews. */
+export interface RectLikeXYWH {
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
+}
 
 /** Ephemeral preview produced during a gesture (rendered as an overlay; never persisted). */
 export interface Draft {
   /** `create` = a shape being drawn; `marquee` = a selection rectangle. */
   readonly type: 'create' | 'marquee';
   /** World-space rectangle [x, y, w, h]. */
-  readonly rect: { readonly x: number; readonly y: number; readonly w: number; readonly h: number };
+  readonly rect: RectLikeXYWH;
 }
 
 /** The observable editor state (ephemeral; the document is held separately as a `SceneGraph`). */
@@ -69,10 +80,16 @@ export interface EditorState {
   readonly viewport: Viewport;
   readonly selection: SelectionState;
   readonly hover: NodeId | null;
+  /** The handle under the pointer while idle (drives the resize cursor), else `null`. */
+  readonly hoverHandle: HandlePosition | null;
   readonly interaction: InteractionPhase;
   readonly draft: Draft | null;
   /** Live drag offset (world) applied to the selection for preview before commit. */
   readonly dragOffset: Vector2 | null;
+  /** The handle being dragged during a resize, else `null`. */
+  readonly activeHandle: HandlePosition | null;
+  /** Live world-rect preview of the primary node during a resize (before commit). */
+  readonly resizePreview: RectLikeXYWH | null;
   /** Bumped whenever the document (scene graph) changes — lets selectors react. */
   readonly documentVersion: number;
   /** Unsaved document changes since the last save (set only by document mutations, EDT-2). */

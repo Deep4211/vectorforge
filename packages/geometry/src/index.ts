@@ -28,6 +28,9 @@ export {
   clampCornerRadius,
 } from './scalar';
 
+// Distance / proximity helpers
+export { distancePointToSegment } from './distance';
+
 // Primitives
 export { Vector2 } from './vector2';
 export { Matrix3 } from './matrix3';

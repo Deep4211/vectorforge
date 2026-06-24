@@ -21,9 +21,12 @@ function initialState(viewport: Viewport): EditorState {
     viewport,
     selection: EMPTY_SELECTION,
     hover: null,
+    hoverHandle: null,
     interaction: 'idle',
     draft: null,
     dragOffset: null,
+    activeHandle: null,
+    resizePreview: null,
     documentVersion: 0,
     dirty: false,
   };

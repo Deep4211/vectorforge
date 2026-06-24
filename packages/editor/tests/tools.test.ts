@@ -147,3 +147,152 @@ describe('tools — text', () => {
     expect(node.transform.position.equals(new Vector2(50, 60))).toBe(true);
   });
 });
+
+describe('tools — drag threshold (click vs drag, SEL edge)', () => {
+  it('a sub-threshold press is a click: selects but commits no move', () => {
+    const c = controller();
+    const id = c.createShape('rectangle', new Rectangle(0, 0, 40, 40));
+    const v0 = c.scene.version;
+    c.setTool('move');
+    c.handlePointerDown(pointer(10, 10));
+    c.handlePointerMove(pointer(12, 11)); // ~2px — below the 4px threshold
+    c.handlePointerUp(pointer(12, 11));
+    expect(c.state.selection.ids).toEqual([id]);
+    expect(c.scene.version).toBe(v0); // no move command committed
+    expect(c.scene.getOrThrow(id).transform.position.equals(new Vector2(0, 0))).toBe(true);
+  });
+
+  it('a sub-threshold press on empty space clears but starts no marquee', () => {
+    const c = controller();
+    const id = c.createShape('rectangle', new Rectangle(0, 0, 40, 40));
+    c.setTool('move');
+    c.handlePointerDown(pointer(200, 200)); // empty → clears on down
+    c.handlePointerUp(pointer(201, 201)); // ~1.4px
+    expect(c.state.selection.ids).toEqual([]);
+    void id;
+  });
+});
+
+describe('tools — resize via a transform handle', () => {
+  it('drags the SE handle to resize the selected node on release', () => {
+    const c = controller();
+    const id = c.createShape('rectangle', new Rectangle(0, 0, 100, 50));
+    c.setTool('move');
+    c.handlePointerDown(pointer(100, 50)); // SE corner handle (screen == world)
+    expect(c.state.interaction).toBe('resizing');
+    c.handlePointerMove(pointer(120, 60));
+    c.handlePointerUp(pointer(120, 60));
+    expect((c.scene.getOrThrow(id) as { size: { w: number; h: number } }).size).toEqual({
+      w: 120,
+      h: 60,
+    });
+  });
+});
+
+describe('tools — axis-locked move (Shift)', () => {
+  it('locks a move drag to the dominant axis', () => {
+    const c = controller();
+    const id = c.createShape('rectangle', new Rectangle(0, 0, 100, 50));
+    c.setTool('move');
+    c.handlePointerDown(pointer(50, 25)); // interior, away from handles
+    const shift = { modifiers: { ...NO_MODIFIERS, shift: true } };
+    c.handlePointerMove(pointer(90, 30, shift)); // Δ(40,5) → x dominant
+    c.handlePointerUp(pointer(90, 30, shift));
+    expect(c.scene.getOrThrow(id).transform.position.equals(new Vector2(40, 0))).toBe(true);
+  });
+
+  it('resizes from center via a handle when Alt is held', () => {
+    const c = controller();
+    const id = c.createShape('rectangle', new Rectangle(0, 0, 100, 50));
+    c.setTool('move');
+    c.handlePointerDown(pointer(100, 50)); // SE handle
+    const alt = { modifiers: { ...NO_MODIFIERS, alt: true } };
+    c.handlePointerMove(pointer(120, 60, alt));
+    c.handlePointerUp(pointer(120, 60, alt));
+    const n = c.scene.getOrThrow(id) as {
+      size: { w: number; h: number };
+      transform: { position: Vector2 };
+    };
+    expect(n.size).toEqual({ w: 140, h: 70 }); // grows symmetrically (2× the delta)
+    expect(n.transform.position.equals(new Vector2(-20, -10))).toBe(true);
+  });
+});
+
+describe('tools — gesture cancellation (EDT-7, §8.3)', () => {
+  it('Escape mid-gesture resets the tool; a later move does not resurrect the marquee', () => {
+    const c = controller();
+    c.createShape('rectangle', new Rectangle(0, 0, 40, 40));
+    c.setTool('move');
+    c.handlePointerDown(pointer(200, 200)); // empty → marquee
+    c.handlePointerMove(pointer(260, 260)); // past threshold
+    expect(c.state.interaction).toBe('marquee');
+    c.handleKeyboard({ key: 'Escape', modifiers: NO_MODIFIERS, inTextInput: false });
+    expect(c.state.interaction).toBe('idle');
+    c.handlePointerMove(pointer(280, 280)); // pointer still physically down
+    expect(c.state.interaction).toBe('idle'); // not resurrected
+    expect(c.state.draft).toBeNull();
+  });
+
+  it('handlePointerCancel aborts a drag cleanly — no commit, no stuck state', () => {
+    const c = controller();
+    const id = c.createShape('rectangle', new Rectangle(0, 0, 40, 40));
+    const v0 = c.scene.version;
+    c.setTool('move');
+    c.handlePointerDown(pointer(20, 20));
+    c.handlePointerMove(pointer(60, 20)); // past threshold
+    expect(c.state.interaction).toBe('dragging');
+    c.handlePointerCancel();
+    expect(c.state.interaction).toBe('idle');
+    expect(c.state.dragOffset).toBeNull();
+    c.handlePointerUp(pointer(60, 20)); // nothing to commit
+    expect(c.scene.version).toBe(v0);
+    expect(c.scene.getOrThrow(id).transform.position.equals(new Vector2(0, 0))).toBe(true);
+  });
+});
+
+describe('tools — select / cycle / drag on overlapping stacks (§8.1)', () => {
+  function stacked() {
+    const c = controller();
+    const a = c.createShape('rectangle', new Rectangle(0, 0, 50, 50));
+    const b = c.createShape('rectangle', new Rectangle(0, 0, 50, 50)); // on top of a
+    c.setTool('move');
+    return { c, a, b };
+  }
+  const click = (c: ReturnType<typeof controller>, x: number, y: number) => {
+    c.handlePointerDown(pointer(x, y));
+    c.handlePointerUp(pointer(x, y));
+  };
+
+  it('grabbing the already-selected top node drags it (does not cycle away)', () => {
+    const { c, a, b } = stacked();
+    click(c, 25, 25);
+    expect(c.state.selection.primaryId).toBe(b); // topmost
+    c.handlePointerDown(pointer(25, 25)); // press b again to drag
+    c.handlePointerMove(pointer(60, 25));
+    c.handlePointerUp(pointer(60, 25));
+    expect(c.state.selection.primaryId).toBe(b); // still b
+    expect(c.scene.getOrThrow(b).transform.position.equals(new Vector2(35, 0))).toBe(true);
+    expect(c.scene.getOrThrow(a).transform.position.equals(new Vector2(0, 0))).toBe(true);
+  });
+
+  it('repeated deliberate clicks cycle through the stack', () => {
+    const { c, a, b } = stacked();
+    click(c, 25, 25);
+    expect(c.state.selection.primaryId).toBe(b);
+    click(c, 25, 25);
+    expect(c.state.selection.primaryId).toBe(a);
+    click(c, 25, 25);
+    expect(c.state.selection.primaryId).toBe(b); // wrap
+  });
+
+  it('re-clicking a just-moved stacked node keeps it (cycle memory cleared by the move)', () => {
+    const { c, b } = stacked();
+    click(c, 25, 25); // select b, set cycle memory [b,a]/b
+    c.handlePointerDown(pointer(25, 25)); // drag b a little (still covers 25,25)
+    c.handlePointerMove(pointer(30, 25));
+    c.handlePointerUp(pointer(30, 25));
+    expect(c.state.selection.primaryId).toBe(b);
+    click(c, 25, 25); // re-click: memory cleared by the move ⇒ topmost b, not a
+    expect(c.state.selection.primaryId).toBe(b);
+  });
+});

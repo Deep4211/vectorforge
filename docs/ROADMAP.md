@@ -233,7 +233,23 @@ that proves the dependency graph resolves. Toolchain itself is the deliverable.
 
 ---
 
-## Sprint 6 — Interaction System
+## Sprint 6 — Interaction System ✅ (complete)
+
+> Delivered (framework-independent, in `@vectorforge/editor`): two-phase
+> **hit-testing** — broad-phase AABB prune + precise narrow phase in each node's
+> local space (rounded-rect, ellipse, rotated geometry via inverse world matrix,
+> line stroke-proximity) — with `hitTestAll` and **overlapping-click cycling**;
+> **transform handles** (8 screen-space handles, hit-testing, and pure
+> `resizeRect` math with aspect-lock + resize-from-center) committing one
+> move+resize history entry; the **modifier system** (Shift axis-lock/aspect,
+> Alt from-center) and a **drag threshold** (sub-4px press = click); **hover +
+> cursor management**; **arrow-key nudge** (×10 with Shift) and an **IME guard**
+> on top of the focus guard; and V1 **smart alignment guides** (gaps + center to
+> the parent frame). `distancePointToSegment` added to geometry. ~96% editor line
+> coverage. Scoped out (documented): raw Pointer-Event→`EngineInput` normalization
+> and the command palette + visual overlay rendering land in Sprint 7 (UI); the
+> spatial acceleration index is Sprint 9 (performance); the rotation handle and
+> Alt-duplicate-on-drag are V2; multi-node resize tracks the primary node.
 
 **Goals.** Connect real pointer/keyboard input to the editor (ARCHITECTURE.md
 §8–§9; PRD F-2, F-4, F-5, F-6, §8.9).

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { Rectangle, screenToWorld, Vector2 } from '@vectorforge/geometry';
-import { createSequentialIdGenerator } from '@vectorforge/document';
+import { Rectangle, screenToWorld, Transform, Vector2 } from '@vectorforge/geometry';
+import {
+  createFrame,
+  createRectangle,
+  createSequentialIdGenerator,
+  SceneGraph,
+} from '@vectorforge/document';
 import { EditorController, NO_MODIFIERS } from '@vectorforge/editor';
 
 function makeController() {
@@ -309,5 +314,224 @@ describe('EditorController — misc intentions', () => {
     expect(controller.scene.roots()).toEqual([b, a, c]);
     controller.sendBackward(a);
     expect(controller.scene.roots()).toEqual([a, b, c]);
+  });
+});
+
+describe('EditorController — resize gesture (transform handles, §9)', () => {
+  it('resizes the primary node via a handle and reverts on undo (one history entry)', () => {
+    const { controller } = makeController();
+    const id = controller.createShape('rectangle', new Rectangle(0, 0, 100, 50));
+    expect(controller.beginResize('se', new Vector2(100, 50))).toBe(true);
+    expect(controller.state.interaction).toBe('resizing');
+    expect(controller.state.activeHandle).toBe('se');
+
+    // Drag the SE handle by (+20, +10): preview is ephemeral, document untouched.
+    controller.updateResize(new Vector2(120, 60), { aspect: false, fromCenter: false });
+    expect(controller.state.resizePreview).toEqual({ x: 0, y: 0, w: 120, h: 60 });
+    expect(controller.scene.getOrThrow(id).type).toBe('rectangle');
+    const node = controller.scene.getOrThrow(id) as { size: { w: number; h: number } };
+    expect(node.size).toEqual({ w: 100, h: 50 }); // not yet committed
+
+    controller.commitResize();
+    expect(controller.state.interaction).toBe('idle');
+    expect(controller.state.resizePreview).toBeNull();
+    expect((controller.scene.getOrThrow(id) as { size: { w: number; h: number } }).size).toEqual({
+      w: 120,
+      h: 60,
+    });
+
+    controller.undo();
+    expect((controller.scene.getOrThrow(id) as { size: { w: number; h: number } }).size).toEqual({
+      w: 100,
+      h: 50,
+    });
+  });
+
+  it('a corner resize that moves the origin commits position + size together', () => {
+    const { controller } = makeController();
+    const id = controller.createShape('rectangle', new Rectangle(10, 10, 100, 50));
+    controller.beginResize('nw', new Vector2(10, 10));
+    controller.updateResize(new Vector2(30, 20), { aspect: false, fromCenter: false }); // +20x,+10y inward
+    controller.commitResize();
+    const n = controller.scene.getOrThrow(id) as {
+      size: { w: number; h: number };
+      transform: { position: Vector2 };
+    };
+    expect(n.transform.position.equals(new Vector2(30, 20))).toBe(true);
+    expect(n.size).toEqual({ w: 80, h: 40 });
+    controller.undo(); // single undo restores both
+    const r = controller.scene.getOrThrow(id) as {
+      size: { w: number; h: number };
+      transform: { position: Vector2 };
+    };
+    expect(r.transform.position.equals(new Vector2(10, 10))).toBe(true);
+    expect(r.size).toEqual({ w: 100, h: 50 });
+  });
+
+  it('resizes a child in its parent-local space (frame offset is undone)', () => {
+    // A frame translated to (100,0) with a child rect at local (10,10), size 50×50.
+    const scene = SceneGraph.empty();
+    scene.add(
+      createFrame({
+        id: 'f',
+        size: { w: 200, h: 200 },
+        transform: new Transform(new Vector2(100, 0), 0, Vector2.ONE),
+      }),
+    );
+    scene.add(
+      createRectangle({
+        id: 'c',
+        size: { w: 50, h: 50 },
+        transform: new Transform(new Vector2(10, 10), 0, Vector2.ONE),
+      }),
+      'f',
+    );
+    const controller = new EditorController({ scene });
+    controller.selectMany(['c']);
+    // Child world SE corner = (160,60); drag it to (180,80) → +20,+20 in parent-local.
+    expect(controller.beginResize('se', new Vector2(160, 60))).toBe(true);
+    controller.updateResize(new Vector2(180, 80), { aspect: false, fromCenter: false });
+    controller.commitResize();
+    expect((controller.scene.getOrThrow('c') as { size: { w: number; h: number } }).size).toEqual({
+      w: 70,
+      h: 70,
+    });
+  });
+
+  it('resizes a rotated node in its OWN local frame (rotation is undone)', () => {
+    const scene = SceneGraph.empty();
+    scene.add(
+      createRectangle({
+        id: 'r',
+        size: { w: 100, h: 50 },
+        transform: new Transform(new Vector2(0, 0), 90, Vector2.ONE),
+      }),
+    );
+    const controller = new EditorController({ scene });
+    controller.selectMany(['r']);
+    // Local SE corner (100,50) maps to world (-50,100); drag it by (+20,+20) in world.
+    expect(controller.beginResize('se', new Vector2(-50, 100))).toBe(true);
+    controller.updateResize(new Vector2(-30, 120), { aspect: false, fromCenter: false });
+    controller.commitResize();
+    // World (+20,+20) is (+20,-20) in the node's local frame ⇒ size 120×30, not 120×70.
+    expect((controller.scene.getOrThrow('r') as { size: { w: number; h: number } }).size).toEqual({
+      w: 120,
+      h: 30,
+    });
+  });
+
+  it('refuses to resize a node with no box (a line) and cancel clears resize state', () => {
+    const { controller } = makeController();
+    const id = controller.createShape('rectangle', new Rectangle(0, 0, 40, 40));
+    controller.beginResize('se', new Vector2(40, 40));
+    controller.cancelGesture();
+    expect(controller.state.interaction).toBe('idle');
+    expect(controller.state.activeHandle).toBeNull();
+    expect(controller.state.resizePreview).toBeNull();
+    expect((controller.scene.getOrThrow(id) as { size: { w: number; h: number } }).size).toEqual({
+      w: 40,
+      h: 40,
+    });
+  });
+});
+
+describe('EditorController — hover, handles, cursor, guides', () => {
+  it('tracks the hovered node and resize handle, driving the cursor', () => {
+    const { controller } = makeController();
+    const id = controller.createShape('rectangle', new Rectangle(0, 0, 100, 100));
+    controller.updateHover(new Vector2(50, 50), new Vector2(50, 50));
+    expect(controller.state.hover).toBe(id);
+    expect(controller.state.hoverHandle).toBeNull();
+    expect(controller.cursor()).toBe('default');
+
+    // Hover the SE handle (screen == world at the default viewport).
+    controller.updateHover(new Vector2(100, 100), new Vector2(100, 100));
+    expect(controller.state.hoverHandle).toBe('se');
+    expect(controller.cursor()).toBe('nwse-resize');
+  });
+
+  it('exposes selection bounds and parent-frame alignment guides', () => {
+    const { controller } = makeController();
+    expect(controller.selectionBounds()).toBeNull();
+    const id = controller.createShape('rectangle', new Rectangle(10, 20, 30, 40));
+    const b = controller.selectionBounds()!;
+    expect([b.minX, b.minY, b.maxX, b.maxY]).toEqual([10, 20, 40, 60]);
+    expect(controller.guides()).toEqual([]); // top-level node, no parent frame
+    void id;
+  });
+});
+
+describe('EditorController — overlapping-click cycling (§8.1)', () => {
+  it('cycles selection through stacked nodes on repeated clicks at the same spot', () => {
+    const { controller } = makeController();
+    const a = controller.createShape('rectangle', new Rectangle(0, 0, 50, 50));
+    const b = controller.createShape('rectangle', new Rectangle(0, 0, 50, 50)); // on top of a
+    const point = new Vector2(25, 25);
+
+    expect(controller.selectCycle(point, false)).toBe(b); // topmost first
+    expect(controller.selectCycle(point, false)).toBe(a); // cycle down
+    expect(controller.selectCycle(point, false)).toBe(b); // wrap around
+  });
+
+  it('clears selection when cycling on empty space', () => {
+    const { controller } = makeController();
+    controller.createShape('rectangle', new Rectangle(0, 0, 10, 10));
+    expect(controller.selectCycle(new Vector2(500, 500), false)).toBeNull();
+    expect(controller.state.selection.ids).toEqual([]);
+  });
+});
+
+describe('EditorController — keyboard (arrow nudge + IME guard, EDT-8)', () => {
+  it('nudges the selection by 1px, or 10px with Shift', () => {
+    const { controller } = makeController();
+    const id = controller.createShape('rectangle', new Rectangle(0, 0, 10, 10));
+    controller.handleKeyboard({ key: 'ArrowRight', modifiers: NO_MODIFIERS, inTextInput: false });
+    expect(controller.scene.getOrThrow(id).transform.position.equals(new Vector2(1, 0))).toBe(true);
+    controller.handleKeyboard({
+      key: 'ArrowDown',
+      modifiers: { ...NO_MODIFIERS, shift: true },
+      inTextInput: false,
+    });
+    expect(controller.scene.getOrThrow(id).transform.position.equals(new Vector2(1, 10))).toBe(
+      true,
+    );
+  });
+
+  it('suppresses every shortcut (even Escape) mid-IME composition', () => {
+    const { controller } = makeController();
+    const id = controller.createShape('rectangle', new Rectangle(0, 0, 10, 10));
+    controller.handleKeyboard({
+      key: 'Escape',
+      modifiers: NO_MODIFIERS,
+      inTextInput: false,
+      isComposing: true,
+    });
+    expect(controller.state.selection.ids).toEqual([id]); // not cleared
+    controller.handleKeyboard({
+      key: 'ArrowRight',
+      modifiers: NO_MODIFIERS,
+      inTextInput: false,
+      isComposing: true,
+    });
+    expect(controller.scene.getOrThrow(id).transform.position.equals(new Vector2(0, 0))).toBe(true);
+    // The IME guard precedes the undo branch too — meta+z must not undo mid-composition.
+    controller.handleKeyboard({
+      key: 'z',
+      modifiers: { ...NO_MODIFIERS, meta: true },
+      inTextInput: false,
+      isComposing: true,
+    });
+    expect(controller.scene.has(id)).toBe(true);
+  });
+
+  it('arrow nudge skips a locked node in the selection', () => {
+    const { controller } = makeController();
+    const a = controller.createShape('rectangle', new Rectangle(0, 0, 10, 10));
+    const b = controller.createShape('rectangle', new Rectangle(20, 0, 10, 10));
+    controller.setProperty(a, 'locked', true);
+    controller.selectMany([a, b]); // selectMany drops the locked a
+    controller.handleKeyboard({ key: 'ArrowRight', modifiers: NO_MODIFIERS, inTextInput: false });
+    expect(controller.scene.getOrThrow(a).transform.position.equals(new Vector2(0, 0))).toBe(true);
+    expect(controller.scene.getOrThrow(b).transform.position.equals(new Vector2(21, 0))).toBe(true);
   });
 });
