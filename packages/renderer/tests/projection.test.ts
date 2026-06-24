@@ -193,3 +193,36 @@ describe('projectScene — read-only over the document (RND-1)', () => {
     expect(JSON.stringify(g.getOrThrow('a'))).toBe(snapshotBefore);
   });
 });
+
+describe('projectScene — live preview (move + resize), never mutating the document', () => {
+  it('shifts a moved node and its descendants by the offset', () => {
+    const g = SceneGraph.empty();
+    g.add(createFrame({ id: 'f', size: { w: 100, h: 100 } }));
+    g.add(rectAt('child', 0, 0), 'f'); // child world origin (0,0)
+
+    const moved = projectScene(g, VIEWPORT, VIEW, {
+      move: { ids: new Set(['f']), dx: 40, dy: 10 },
+    });
+    const frame = moved.items.find((i) => i.id === 'f')!;
+    const child = moved.items.find((i) => i.id === 'child')!;
+    expect([frame.worldMatrix.e, frame.worldMatrix.f]).toEqual([40, 10]); // frame shifted
+    expect([child.worldMatrix.e, child.worldMatrix.f]).toEqual([40, 10]); // descendant shifted too
+    expect(g.getOrThrow('f').transform.position.equals(new Vector2(0, 0))).toBe(true); // doc untouched
+  });
+
+  it('applies a resize preview to the targeted node (position + size)', () => {
+    const g = SceneGraph.empty();
+    g.add(rectAt('r', 10, 10, 20, 20));
+    const out = projectScene(g, VIEWPORT, VIEW, {
+      resize: { id: 'r', x: 10, y: 10, w: 80, h: 50 },
+    });
+    const item = out.items.find((i) => i.id === 'r')!;
+    expect(item.kind === 'rectangle' && item.size).toEqual({ w: 80, h: 50 });
+    expect([item.worldMatrix.e, item.worldMatrix.f]).toEqual([10, 10]);
+    // document size unchanged
+    expect((g.getOrThrow('r') as { size: { w: number; h: number } }).size).toEqual({
+      w: 20,
+      h: 20,
+    });
+  });
+});

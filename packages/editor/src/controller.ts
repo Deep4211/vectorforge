@@ -1,6 +1,6 @@
 import {
-  type BoundingBox,
-  type Matrix3,
+  BoundingBox,
+  Matrix3,
   Transform,
   Vector2,
   zoomViewportAt,
@@ -556,6 +556,41 @@ export class EditorController implements ToolHost {
   /** The selection's combined world AABB (for the transform overlay), or `null`. */
   selectionBounds(): BoundingBox | null {
     return selectionWorldBounds(this.scene, this.state.selection.ids);
+  }
+
+  /**
+   * Like {@link selectionBounds} but reflecting any in-progress move/resize preview,
+   * so the screen-space overlay tracks the shape live during a drag (it matches the
+   * preview the renderer paints via `projectScene`).
+   */
+  previewBounds(): BoundingBox | null {
+    const base = selectionWorldBounds(this.scene, this.state.selection.ids);
+    if (!base) return null;
+    const { dragOffset, resizePreview } = this.state;
+    if (dragOffset && (dragOffset.x !== 0 || dragOffset.y !== 0)) {
+      return new BoundingBox(
+        base.minX + dragOffset.x,
+        base.minY + dragOffset.y,
+        base.maxX + dragOffset.x,
+        base.maxY + dragOffset.y,
+      );
+    }
+    const primary = this.state.selection.primaryId;
+    if (resizePreview && primary !== null && this.scene.has(primary)) {
+      const node = this.scene.getOrThrow(primary);
+      const parentWorld =
+        node.parentId === null ? Matrix3.IDENTITY : this.scene.worldMatrix(node.parentId);
+      const m = parentWorld.multiply(
+        node.transform.withPosition({ x: resizePreview.x, y: resizePreview.y }).toMatrix(),
+      );
+      return BoundingBox.fromPoints([
+        m.transformPoint({ x: 0, y: 0 }),
+        m.transformPoint({ x: resizePreview.w, y: 0 }),
+        m.transformPoint({ x: resizePreview.w, y: resizePreview.h }),
+        m.transformPoint({ x: 0, y: resizePreview.h }),
+      ]);
+    }
+    return base;
   }
 
   /** Alignment guides for a single selected node relative to its parent frame (§9.4). */

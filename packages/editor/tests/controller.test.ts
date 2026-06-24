@@ -535,3 +535,27 @@ describe('EditorController — keyboard (arrow nudge + IME guard, EDT-8)', () =>
     expect(controller.scene.getOrThrow(b).transform.position.equals(new Vector2(21, 0))).toBe(true);
   });
 });
+
+describe('EditorController — previewBounds (live drag/resize overlay)', () => {
+  it('shifts the selection bounds by the live drag offset', () => {
+    const { controller } = makeController();
+    controller.createShape('rectangle', new Rectangle(0, 0, 40, 40));
+    const before = controller.previewBounds()!;
+    expect([before.minX, before.minY, before.maxX, before.maxY]).toEqual([0, 0, 40, 40]);
+
+    controller.setDragOffset(new Vector2(15, 5));
+    const live = controller.previewBounds()!;
+    expect([live.minX, live.minY, live.maxX, live.maxY]).toEqual([15, 5, 55, 45]);
+  });
+
+  it('reflects the resize preview rect', () => {
+    const { controller } = makeController();
+    controller.createShape('rectangle', new Rectangle(0, 0, 40, 40));
+    const id = controller.state.selection.primaryId!;
+    controller.beginResize('se', new Vector2(40, 40));
+    controller.updateResize(new Vector2(100, 60), { aspect: false, fromCenter: false });
+    const live = controller.previewBounds()!;
+    expect([live.minX, live.minY, live.maxX, live.maxY]).toEqual([0, 0, 100, 60]);
+    void id;
+  });
+});

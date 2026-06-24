@@ -12,7 +12,12 @@
  */
 
 // Scene projection + culling
-export { projectScene, type ProjectionOptions } from './projection';
+export {
+  projectScene,
+  type ProjectionOptions,
+  type MovePreview,
+  type ResizePreview,
+} from './projection';
 export { visibleWorldBox, DEFAULT_CULL_MARGIN } from './culling';
 
 // Canvas2D backend + drawing

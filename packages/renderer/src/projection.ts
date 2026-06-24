@@ -1,11 +1,33 @@
-import type { BoundingBox, Viewport } from '@vectorforge/geometry';
+import { BoundingBox, Matrix3, type Viewport } from '@vectorforge/geometry';
 import type { NodeId, SceneGraph, SceneNode } from '@vectorforge/document';
 import { visibleWorldBox } from './culling';
 import type { RenderItem, RenderScene, ViewSize } from './types';
 
+type Size = { readonly w: number; readonly h: number };
+
+/** Live move preview: shift these nodes (and their descendants) by `(dx, dy)` in world space. */
+export interface MovePreview {
+  readonly ids: ReadonlySet<NodeId>;
+  readonly dx: number;
+  readonly dy: number;
+}
+
+/** Live resize preview: give `id` this parent-local position + size. */
+export interface ResizePreview {
+  readonly id: NodeId;
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
+}
+
 export interface ProjectionOptions {
   /** Cull margin in CSS px (see {@link visibleWorldBox}). */
   readonly cullMargin?: number;
+  /** Ephemeral move preview applied at projection time (never mutates the document, RND-1). */
+  readonly move?: MovePreview | undefined;
+  /** Ephemeral resize preview applied at projection time. */
+  readonly resize?: ResizePreview | undefined;
 }
 
 /** Multiply a node's own opacity by every ancestor's — the effective alpha (RND-1 read-only). */
@@ -23,6 +45,7 @@ function toRenderItem(
   opacity: number,
   worldMatrix: RenderItem['worldMatrix'],
   worldBounds: BoundingBox | null,
+  sizeOverride: Size | null,
 ): RenderItem | null {
   const base = { id: node.id, worldMatrix, opacity, worldBounds };
   switch (node.type) {
@@ -32,7 +55,7 @@ function toRenderItem(
       return {
         ...base,
         kind: 'frame',
-        size: node.size,
+        size: sizeOverride ?? node.size,
         backgroundColor: node.backgroundColor,
         clipsContent: node.clipsContent,
       };
@@ -40,12 +63,12 @@ function toRenderItem(
       return {
         ...base,
         kind: 'rectangle',
-        size: node.size,
+        size: sizeOverride ?? node.size,
         fill: node.fill,
         cornerRadius: node.cornerRadius,
       };
     case 'ellipse':
-      return { ...base, kind: 'ellipse', size: node.size, fill: node.fill };
+      return { ...base, kind: 'ellipse', size: sizeOverride ?? node.size, fill: node.fill };
     case 'line':
       return {
         ...base,
@@ -67,20 +90,34 @@ function toRenderItem(
         letterSpacing: node.letterSpacing,
         textAlign: node.textAlign,
         fill: node.fill,
-        size: node.size,
+        size: sizeOverride ?? node.size,
       };
     case 'image':
-      return { ...base, kind: 'image', size: node.size, assetRef: node.assetRef, fit: node.fit };
+      return {
+        ...base,
+        kind: 'image',
+        size: sizeOverride ?? node.size,
+        assetRef: node.assetRef,
+        fit: node.fit,
+      };
   }
+}
+
+function isMoved(scene: SceneGraph, id: NodeId, move: MovePreview): boolean {
+  if (move.ids.has(id)) return true;
+  return scene.ancestors(id).some((a) => move.ids.has(a));
+}
+
+function shiftBounds(box: BoundingBox | null, dx: number, dy: number): BoundingBox | null {
+  return box ? new BoundingBox(box.minX + dx, box.minY + dy, box.maxX + dx, box.maxY + dy) : null;
 }
 
 /**
  * Project the document into a renderer-facing display list for one viewport
- * (ARCHITECTURE.md §7.1). The result is flat, **painter-ordered** (back-to-front,
- * from {@link SceneGraph.flatten}), and **viewport-culled** (RND-6): effectively
- * invisible nodes and groups are dropped; off-screen nodes are skipped but the
- * document and selection are untouched (RND-1). A node with no finite bounds
- * (e.g. auto-sized text) is never culled.
+ * (ARCHITECTURE.md §7.1): flat, painter-ordered, viewport-culled (RND-6).
+ * Optional live move/resize previews are applied at projection time so a drag
+ * shows on the canvas without mutating the document (RND-1) — the committing
+ * command lands only on pointer-up.
  */
 export function projectScene(
   scene: SceneGraph,
@@ -89,6 +126,7 @@ export function projectScene(
   options: ProjectionOptions = {},
 ): RenderScene {
   const visible = visibleWorldBox(viewport, view, options.cullMargin);
+  const { move, resize } = options;
   const items: RenderItem[] = [];
   let totalCount = 0;
 
@@ -98,14 +136,36 @@ export function projectScene(
     if (node.type === 'group') continue;
     totalCount += 1;
 
-    const worldBounds = scene.worldBounds(id);
+    let worldMatrix = scene.worldMatrix(id);
+    let worldBounds = scene.worldBounds(id);
+    let sizeOverride: Size | null = null;
+
+    if (move && isMoved(scene, id, move)) {
+      worldMatrix = Matrix3.translation(move.dx, move.dy).multiply(worldMatrix);
+      worldBounds = shiftBounds(worldBounds, move.dx, move.dy);
+    } else if (resize && resize.id === id) {
+      const parentWorld =
+        node.parentId === null ? Matrix3.IDENTITY : scene.worldMatrix(node.parentId);
+      worldMatrix = parentWorld.multiply(
+        node.transform.withPosition({ x: resize.x, y: resize.y }).toMatrix(),
+      );
+      sizeOverride = { w: resize.w, h: resize.h };
+      worldBounds = BoundingBox.fromPoints([
+        worldMatrix.transformPoint({ x: 0, y: 0 }),
+        worldMatrix.transformPoint({ x: resize.w, y: 0 }),
+        worldMatrix.transformPoint({ x: resize.w, y: resize.h }),
+        worldMatrix.transformPoint({ x: 0, y: resize.h }),
+      ]);
+    }
+
     if (worldBounds && !visible.intersects(worldBounds)) continue; // culled (RND-6)
 
     const item = toRenderItem(
       node,
       effectiveOpacity(scene, node),
-      scene.worldMatrix(id),
+      worldMatrix,
       worldBounds,
+      sizeOverride,
     );
     if (item) items.push(item);
   }

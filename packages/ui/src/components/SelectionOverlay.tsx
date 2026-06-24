@@ -33,9 +33,15 @@ export function SelectionOverlay() {
   const viewport = useEditorSelector((s) => s.viewport);
   const selection = useEditorSelector((s) => s.selection);
   const draft = useEditorSelector((s) => s.draft);
+  const dragOffset = useEditorSelector((s) => s.dragOffset);
+  const resizePreview = useEditorSelector((s) => s.resizePreview);
   const version = useDocumentVersion();
 
-  const bounds = useMemo(() => controller.selectionBounds(), [controller, selection, version]);
+  // previewBounds() reflects the in-progress move/resize so handles track the shape live.
+  const bounds = useMemo(
+    () => controller.previewBounds(),
+    [controller, selection, version, dragOffset, resizePreview],
+  );
   const guides = useMemo(() => controller.guides(), [controller, selection, version]);
 
   const sel = bounds ? rectFromWorld(bounds, viewport) : null;

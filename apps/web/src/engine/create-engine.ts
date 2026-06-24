@@ -1,5 +1,11 @@
 import { EditorController } from '@vectorforge/editor';
-import { CanvasRenderer, FrameScheduler, projectScene } from '@vectorforge/renderer';
+import {
+  CanvasRenderer,
+  FrameScheduler,
+  projectScene,
+  type MovePreview,
+  type ResizePreview,
+} from '@vectorforge/renderer';
 import type { CanvasEngine } from '@vectorforge/ui';
 import { buildSampleDocument } from './sample-document';
 
@@ -15,11 +21,31 @@ export function createEngine(): CanvasEngine {
   let viewSize = { width: 0, height: 0 };
   let attached = false;
 
-  // One rAF-coalesced frame: project the document for the current viewport and paint.
+  // One rAF-coalesced frame: project the document (with any in-progress move/resize
+  // preview from the editor's ephemeral state) for the current viewport and paint.
   const drawFrame = (): void => {
     if (!attached) return;
-    renderer.setViewport(controller.state.viewport);
-    renderer.renderFrame(projectScene(controller.scene, controller.state.viewport, viewSize), {
+    const s = controller.state;
+    let move: MovePreview | undefined;
+    let resize: ResizePreview | undefined;
+    if (
+      s.dragOffset &&
+      (s.dragOffset.x !== 0 || s.dragOffset.y !== 0) &&
+      s.selection.ids.length > 0
+    ) {
+      move = { ids: new Set(s.selection.ids), dx: s.dragOffset.x, dy: s.dragOffset.y };
+    }
+    if (s.resizePreview && s.selection.primaryId !== null) {
+      resize = {
+        id: s.selection.primaryId,
+        x: s.resizePreview.x,
+        y: s.resizePreview.y,
+        w: s.resizePreview.w,
+        h: s.resizePreview.h,
+      };
+    }
+    renderer.setViewport(s.viewport);
+    renderer.renderFrame(projectScene(controller.scene, s.viewport, viewSize, { move, resize }), {
       kind: 'full',
     });
   };
