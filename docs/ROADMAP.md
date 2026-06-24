@@ -194,7 +194,22 @@ that proves the dependency graph resolves. Toolchain itself is the deliverable.
 
 ---
 
-## Sprint 5 — Rendering Engine
+## Sprint 5 — Rendering Engine ✅ (complete)
+
+> Delivered: the `IRenderer` port and the `RenderScene` projection
+> (`projectScene` — flat, painter-ordered, viewport-culled display list with
+> effective-opacity folding; groups drop out, off-screen nodes cull without
+> leaving the model, RND-1/3/6); the Canvas2D `CanvasRenderer` (single
+> `scale(dpr)·translate(pan)·scale(zoom)` view transform, high-DPI backing store,
+> full + dirty-rect repaints; frames, rounded rects, ellipses, lines, text and
+> image placeholders) behind the port (RND-2/8); the rAF-coalesced `FrameScheduler`
+> with an injectable frame source + budget watchdog (RND-4/5); viewport culling and
+> the adaptive dot-grid overlay. Drawn through a structural `Context2DLike`, so a
+> recording fake pins the exact draw sequence and determinism (RND-9) under Node.
+> ~96% line coverage; `pnpm bench` covers the 10k-node projection hot path. Scoped
+> out (documented): spatial index + layer/`OffscreenCanvas` caching (Sprint 9),
+> frame content-clipping and gradient/shadow paints (richer fill model), image
+> bitmaps (Sprint 8), and Playwright screenshot-diff regression (needs E2E infra).
 
 **Goals.** Paint the document at 60 FPS (ARCHITECTURE.md §7; PRD F-1, §11.1).
 
