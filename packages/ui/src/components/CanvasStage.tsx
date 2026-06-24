@@ -126,12 +126,12 @@ export function CanvasStage() {
   };
 
   return (
-    <div className="relative min-h-0 flex-1 overflow-hidden overscroll-none bg-[#0B0B0E]">
+    <div className="bg-canvas relative min-h-0 flex-1 overflow-hidden overscroll-none">
       <canvas
         ref={canvasRef}
         tabIndex={0}
         aria-label="Design canvas"
-        className="absolute inset-0 h-full w-full touch-none outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#7C5CFF]/50"
+        className="focus-visible:ring-brand/50 absolute inset-0 h-full w-full touch-none outline-none focus-visible:ring-1 focus-visible:ring-inset"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}

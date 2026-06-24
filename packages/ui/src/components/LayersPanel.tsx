@@ -84,7 +84,7 @@ export function LayersPanel() {
                   }
                 }}
                 className={`group/row focus-visible:ring-brand flex h-7 items-center rounded pr-2 text-[12.5px] outline-none focus-visible:ring-2 ${
-                  isSelected ? 'bg-brand/[0.16] text-ink' : 'text-[#C8C8D2] hover:bg-white/[0.04]'
+                  isSelected ? 'bg-brand/[0.16] text-ink' : 'text-label hover:bg-white/[0.04]'
                 } ${item.visible ? '' : 'opacity-50'}`}
               >
                 <span style={{ width: depth * 15 }} className="flex-none" />
@@ -109,7 +109,7 @@ export function LayersPanel() {
                 </button>
                 <span
                   className={`mr-[7px] flex h-4 w-4 flex-none items-center justify-center ${
-                    isSelected || item.type === 'frame' ? 'text-brand-2' : 'text-[#7A7A88]'
+                    isSelected || item.type === 'frame' ? 'text-brand-2' : 'text-dim-2'
                   }`}
                 >
                   <Icon d={TYPE_PATH[item.type]} size={14} sw={1.5} />
@@ -129,7 +129,7 @@ export function LayersPanel() {
                     e.stopPropagation();
                     controller.setProperty(item.id, 'locked', !item.locked);
                   }}
-                  className={`text-faint hover:text-ink h-[22px] w-[22px] items-center justify-center rounded-[5px] hover:bg-[#2A2A33] ${
+                  className={`text-faint hover:text-ink hover:bg-track h-[22px] w-[22px] items-center justify-center rounded-[5px] ${
                     item.locked ? 'flex' : 'hidden group-hover/row:flex'
                   }`}
                 >
@@ -144,7 +144,7 @@ export function LayersPanel() {
                     e.stopPropagation();
                     controller.setProperty(item.id, 'visibility', !item.visible);
                   }}
-                  className={`text-faint hover:text-ink h-[22px] w-[22px] items-center justify-center rounded-[5px] hover:bg-[#2A2A33] ${
+                  className={`text-faint hover:text-ink hover:bg-track h-[22px] w-[22px] items-center justify-center rounded-[5px] ${
                     item.visible ? 'hidden group-hover/row:flex' : 'flex'
                   }`}
                 >

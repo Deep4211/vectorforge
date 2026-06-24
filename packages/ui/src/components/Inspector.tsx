@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Vector2, type Inspection, type NodeId } from '@vectorforge/editor';
 import { useController } from '../context';
 import { useDocumentVersion, useEditorSelector } from '../hooks/use-editor-selector';
+import { useTheme } from '../hooks/use-theme';
 
 function Field({
   label,
@@ -97,7 +98,7 @@ function Select({
         value={value}
         aria-label={label}
         onChange={(e) => onCommit(e.currentTarget.value)}
-        className="text-ink [&>option]:text-ink w-full cursor-pointer bg-transparent text-xs outline-none [&>option]:bg-[#1A1A22]"
+        className="text-ink [&>option]:text-ink [&>option]:bg-surface w-full cursor-pointer bg-transparent text-xs outline-none"
       >
         {!known && <option value={value}>{value}</option>}
         {options.map((o) => (
@@ -325,7 +326,10 @@ export function Inspector() {
   const controller = useController();
   const version = useDocumentVersion();
   const selection = useEditorSelector((state) => state.selection);
+  const theme = useTheme();
   const model = useMemo(() => controller.inspection(), [controller, version, selection]);
+  // The page background mirrors the canvas token, which differs per theme.
+  const pageBgHex = theme === 'light' ? 'E9E9EC' : '0B0B0E';
 
   return (
     <aside aria-label="Inspector" className="bg-panel flex h-full w-[280px] flex-col">
@@ -348,8 +352,8 @@ export function Inspector() {
             <div className="mb-3.5 flex items-center justify-between">
               <span className="text-muted-2 text-[12.5px]">Background</span>
               <div className="border-border bg-surface flex items-center gap-1.5 rounded-md border px-2 py-1">
-                <span className="bg-canvas h-4 w-4 rounded border border-[#33333E]" />
-                <span className="text-muted font-mono text-[11.5px]">0B0B0E</span>
+                <span className="bg-canvas border-faint/60 h-4 w-4 rounded border" />
+                <span className="text-muted font-mono text-[11.5px]">{pageBgHex}</span>
               </div>
             </div>
             <div className="border-border mt-7 rounded-xl border border-dashed px-2.5 py-7 text-center">

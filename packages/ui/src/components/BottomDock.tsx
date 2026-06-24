@@ -62,9 +62,7 @@ export function BottomDock() {
               type="button"
               onClick={() => select(t.id)}
               className={`h-[26px] rounded-[7px] px-[11px] text-xs ${
-                active
-                  ? 'text-ink bg-[#22222D] font-semibold'
-                  : 'hover:text-ink font-medium text-[#8A8A96]'
+                active ? 'text-ink bg-hover-2 font-semibold' : 'hover:text-ink text-dim font-medium'
               }`}
             >
               {t.label}
@@ -76,7 +74,7 @@ export function BottomDock() {
           type="button"
           aria-label={open ? 'Collapse dock' : 'Expand dock'}
           onClick={() => setOpen((p) => !p)}
-          className="text-faint-2 flex h-[26px] w-[26px] items-center justify-center rounded-md hover:bg-[#22222B] hover:text-white"
+          className="text-faint-2 hover:bg-hover hover:text-ink flex h-[26px] w-[26px] items-center justify-center rounded-md"
         >
           <Icon d={PATHS.chevronDown} size={15} sw={1.8} className={open ? '' : 'rotate-180'} />
         </button>
@@ -99,7 +97,7 @@ export function BottomDock() {
                       <span className="text-ink text-[12.5px] font-semibold">{c.name}</span>
                       <span className="text-faint text-[11px]">{c.time}</span>
                     </div>
-                    <div className="text-[12.5px] leading-relaxed text-[#B6B6C2]">{c.text}</div>
+                    <div className="text-label-2 text-[12.5px] leading-relaxed">{c.text}</div>
                   </div>
                 </div>
               ))}
@@ -114,11 +112,11 @@ export function BottomDock() {
             <div className="p-2.5 font-mono text-xs leading-7">
               {LOGS.map((l, i) => (
                 <div key={i} className="flex gap-2.5 px-1">
-                  <span className="flex-none text-[#4E4E5A]">{l.time}</span>
+                  <span className="text-faint-3 flex-none">{l.time}</span>
                   <span className="w-12 flex-none font-semibold" style={{ color: l.color }}>
                     {l.tag}
                   </span>
-                  <span className="text-[#B6B6C2]">{l.msg}</span>
+                  <span className="text-label-2">{l.msg}</span>
                 </div>
               ))}
             </div>

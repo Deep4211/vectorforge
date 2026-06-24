@@ -19,6 +19,7 @@ export function makeTestEngine(): CanvasEngine {
     viewSize() {
       return { width: 800, height: 600 };
     },
+    setGridColor() {},
   };
 }
 

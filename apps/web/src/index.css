@@ -5,24 +5,51 @@
    Scan @vectorforge/ui's source so its utilities are generated. */
 @source '../../../packages/ui/src/**/*.{ts,tsx}';
 
-/* VectorForge design tokens (DesignOS.dc.html / docs/design-spec.md). */
+/* VectorForge design tokens (DesignOS.dc.html / docs/design-spec.md).
+   Values here are the DARK theme (the default look) — they double as the
+   utility definitions Tailwind generates AND the :root CSS variables. The
+   `:root[data-theme='light']` block below overrides the same variables, so a
+   single `data-theme` attribute flips the whole shell with zero markup change.
+   Accent hues (brand/brand-2) are intentionally shared across themes. */
 @theme {
   --font-sans: Onest, ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 
+  /* surfaces */
   --color-canvas: #0b0b0e;
   --color-panel: #121217;
   --color-surface: #1a1a22;
   --color-surface-2: #16161d;
+  --color-sunken: #13131a;
+  --color-inset: #1c1c24;
+  --color-elevated: #1e1e27;
+  --color-hover: #22222b;
+  --color-hover-2: #22222d;
+  --color-track: #2a2a33;
+  --color-active: #26263a;
+
+  /* borders / lines */
   --color-border: #26262f;
   --color-border-strong: #232330;
   --color-border-soft: #1f1f29;
+  --color-line: #2a2a36;
+  --color-line-2: #33333e;
+  --color-line-accent: #3a3a52;
+
+  /* text */
   --color-ink: #ececf1;
   --color-ink-bright: #f2f2f6;
+  --color-label: #c8c8d2;
+  --color-label-2: #b6b6c2;
   --color-muted: #a6a6b2;
   --color-muted-2: #9a9aa6;
+  --color-dim: #8a8a96;
+  --color-dim-2: #7a7a88;
   --color-faint: #5c5c6a;
   --color-faint-2: #6e6e7c;
+  --color-faint-3: #4e4e5a;
+
+  /* accents (shared across themes) */
   --color-brand: #7c5cff;
   --color-brand-2: #8b6bff;
   --color-positive: #3fcf8e;
@@ -30,6 +57,60 @@
   --color-info: #5b9bff;
   --color-danger: #ff6b6b;
   --color-guide: #ff4d8d;
+}
+
+/* Dot-grid colour for the infinite canvas (read by the app and handed to the
+   renderer; the canvas is transparent so everything else is pure CSS). */
+:root {
+  --canvas-grid: #d1d5db;
+}
+
+/* ---- LIGHT THEME -------------------------------------------------------- */
+/* `:root[data-theme='light']` (specificity 0,2,0) beats Tailwind's :root
+   (0,1,0), so these win without !important. Lightness is inverted relative to
+   dark: dark surfaces become light greys, light text becomes dark ink. */
+:root[data-theme='light'] {
+  --color-canvas: #e9e9ec;
+  --color-panel: #ffffff;
+  --color-surface: #f3f3f6;
+  --color-surface-2: #ededf0;
+  --color-sunken: #e2e2e6;
+  --color-inset: #e8e8ec;
+  --color-elevated: #ffffff;
+  --color-hover: #ececef;
+  --color-hover-2: #e7e7eb;
+  --color-track: #d7d7de;
+  --color-active: #ece7fe;
+
+  --color-border: #e3e3ea;
+  --color-border-strong: #d9d9e2;
+  --color-border-soft: #eeeef1;
+  --color-line: #e0e0e6;
+  --color-line-2: #dadae2;
+  --color-line-accent: #d2d2e2;
+
+  --color-ink: #1a1a22;
+  --color-ink-bright: #0b0b10;
+  --color-label: #2c2c34;
+  --color-label-2: #3a3a44;
+  --color-muted: #5a5a67;
+  --color-muted-2: #66666f;
+  /* The faint/dim family is darkened vs a naive inversion so small secondary
+     labels stay ≥4.3:1 on the near-white panels (and faint-3 on the sunken
+     minimap bg). Dark-theme values are unchanged. */
+  --color-dim: #6e6e78;
+  --color-dim-2: #74747e;
+  --color-faint: #767680;
+  --color-faint-2: #70707a;
+  --color-faint-3: #6a6a74;
+
+  --color-positive: #12a567;
+  --color-warn: #c47d00;
+  --color-info: #2f6fe0;
+  --color-danger: #e5484d;
+  --color-guide: #e5408a;
+
+  --canvas-grid: #c6c6d0;
 }
 
 html,
@@ -49,19 +130,19 @@ body {
   overflow: hidden;
 }
 
-/* Thin dark scrollbars, matching the mock. */
+/* Thin scrollbars that track the theme. */
 ::-webkit-scrollbar {
   width: 9px;
   height: 9px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a2a33;
+  background: var(--color-track);
   border: 2px solid transparent;
   border-radius: 6px;
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3a3a45;
+  background: var(--color-line-accent);
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-track {

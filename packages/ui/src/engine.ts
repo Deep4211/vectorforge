@@ -20,4 +20,6 @@ export interface CanvasEngine {
   detach(): void;
   /** Current canvas size in CSS px (for center-anchored zoom); zero before the first layout. */
   viewSize(): { readonly width: number; readonly height: number };
+  /** Recolor the canvas dot grid (theme bridge) and repaint. */
+  setGridColor(color: string): void;
 }

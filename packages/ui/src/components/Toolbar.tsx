@@ -1,6 +1,8 @@
 import type { ToolId } from '@vectorforge/editor';
 import { useController } from '../context';
 import { useEditorSelector } from '../hooks/use-editor-selector';
+import { useTheme } from '../hooks/use-theme';
+import { toggleTheme } from '../theme/theme';
 import { Icon, PATHS } from './icons';
 
 interface ToolSpec {
@@ -31,6 +33,7 @@ export function Toolbar() {
   const controller = useController();
   const tool = useEditorSelector((s) => s.tool);
   const dirty = useEditorSelector((s) => s.dirty);
+  const theme = useTheme();
 
   return (
     <div className="border-border-strong bg-panel relative z-40 flex h-12 flex-none items-center gap-2 border-b px-2.5">
@@ -39,7 +42,7 @@ export function Toolbar() {
         <div className="from-brand-2 flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br to-[#5B3CE0] text-white shadow-[0_2px_8px_rgba(124,92,255,.4)]">
           <Icon d={PATHS.logo} size={16} sw={2.2} />
         </div>
-        <div className="h-5 w-px bg-[#2A2A36]" />
+        <div className="bg-line h-5 w-px" />
         <div className="flex min-w-0 flex-col gap-px">
           <div className="flex items-center gap-1.5">
             <span className="text-ink-bright truncate text-[13px] font-semibold">Untitled</span>
@@ -110,7 +113,7 @@ export function Toolbar() {
         <button
           type="button"
           title="Device preview"
-          className="border-border bg-surface text-muted flex h-8 items-center gap-1.5 rounded-[9px] border px-2.5 text-xs hover:bg-[#22222B]"
+          className="border-border bg-surface text-muted hover:bg-hover flex h-8 items-center gap-1.5 rounded-[9px] border px-2.5 text-xs"
         >
           <Icon d={PATHS.device} size={15} />
           <span>iPhone 15</span>
@@ -138,8 +141,18 @@ export function Toolbar() {
         </button>
         <button
           type="button"
+          aria-label="Toggle theme"
+          aria-pressed={theme === 'light'}
+          title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+          onClick={() => toggleTheme()}
+          className="border-border bg-surface text-muted hover:bg-hover hover:text-ink flex h-8 w-8 items-center justify-center rounded-[9px] border"
+        >
+          <Icon d={theme === 'dark' ? PATHS.sun : PATHS.moon} size={16} sw={1.7} />
+        </button>
+        <button
+          type="button"
           aria-label="Settings"
-          className="border-border bg-surface text-muted flex h-8 w-8 items-center justify-center rounded-[9px] border hover:bg-[#22222B]"
+          className="border-border bg-surface text-muted hover:bg-hover flex h-8 w-8 items-center justify-center rounded-[9px] border"
         >
           <Icon d={PATHS.settings} size={16} sw={1.5} />
         </button>

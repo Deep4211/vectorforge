@@ -38,11 +38,16 @@ export class CanvasRenderer implements IRenderer {
   /** Cached `scale(dpr) · viewportMatrix` — world → device pixels. */
   private base: Matrix3 = Matrix3.IDENTITY;
   private readonly showGrid: boolean;
-  private readonly gridOptions: DotGridOptions;
+  private gridOptions: DotGridOptions;
 
   constructor(options: CanvasRendererOptions = {}) {
     this.showGrid = options.showGrid ?? true;
-    this.gridOptions = options.gridOptions ?? {};
+    this.gridOptions = { ...options.gridOptions };
+  }
+
+  /** Recolor the dot grid (e.g. on a theme change). Caller repaints. */
+  setGridColor(color: string): void {
+    this.gridOptions = { ...this.gridOptions, color };
   }
 
   attach(canvas: CanvasLike): void {

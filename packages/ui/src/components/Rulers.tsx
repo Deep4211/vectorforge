@@ -26,7 +26,7 @@ export function Rulers() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `repeating-linear-gradient(90deg,#33333E 0,#33333E 1px,transparent 1px,transparent ${minor}px),repeating-linear-gradient(90deg,#45454F 0,#45454F 1px,transparent 1px,transparent ${major}px)`,
+            backgroundImage: `repeating-linear-gradient(90deg,var(--color-line-2) 0,var(--color-line-2) 1px,transparent 1px,transparent ${minor}px),repeating-linear-gradient(90deg,var(--color-line-accent) 0,var(--color-line-accent) 1px,transparent 1px,transparent ${major}px)`,
             backgroundPosition: `${offX}px 14px`,
             backgroundSize: 'auto 12px,auto 26px',
           }}
@@ -40,7 +40,7 @@ export function Rulers() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `repeating-linear-gradient(0deg,#33333E 0,#33333E 1px,transparent 1px,transparent ${minor}px),repeating-linear-gradient(0deg,#45454F 0,#45454F 1px,transparent 1px,transparent ${major}px)`,
+            backgroundImage: `repeating-linear-gradient(0deg,var(--color-line-2) 0,var(--color-line-2) 1px,transparent 1px,transparent ${minor}px),repeating-linear-gradient(0deg,var(--color-line-accent) 0,var(--color-line-accent) 1px,transparent 1px,transparent ${major}px)`,
             backgroundPosition: `14px ${offY}px`,
             backgroundSize: '12px auto,26px auto',
           }}

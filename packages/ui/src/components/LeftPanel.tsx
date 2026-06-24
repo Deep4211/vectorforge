@@ -79,7 +79,7 @@ function AssetsTab() {
         {TYPESCALE.map((t) => (
           <div
             key={t.name}
-            className="flex items-baseline justify-between border-b border-[#1C1C24] py-[7px]"
+            className="border-inset flex items-baseline justify-between border-b py-[7px]"
           >
             <span className="text-ink" style={{ fontSize: t.size, fontWeight: t.weight }}>
               {t.name}
@@ -102,7 +102,7 @@ function PagesTab() {
         <button
           type="button"
           aria-label="Add page"
-          className="bg-surface text-muted hover:bg-border flex h-[22px] w-[22px] items-center justify-center rounded-md hover:text-white"
+          className="bg-surface text-muted hover:bg-border hover:text-ink flex h-[22px] w-[22px] items-center justify-center rounded-md"
         >
           <Icon d={PATHS.plus} size={14} sw={2} />
         </button>
@@ -112,7 +112,7 @@ function PagesTab() {
           key={p.name}
           type="button"
           className={`flex h-[34px] w-full items-center gap-2.5 rounded-lg px-2 text-left ${
-            p.active ? 'bg-[#1C1C24] text-white' : 'text-muted hover:bg-[#1C1C24]'
+            p.active ? 'bg-inset text-ink' : 'text-muted hover:bg-inset'
           }`}
         >
           <Icon d={PATHS.image} size={15} />
@@ -145,8 +145,8 @@ export function LeftPanel() {
             onClick={() => setTab(t)}
             className={`h-7 rounded-[7px] px-[11px] text-xs capitalize ${
               tab === t
-                ? 'text-ink bg-[#22222D] font-semibold'
-                : 'hover:text-ink font-medium text-[#8A8A96]'
+                ? 'text-ink bg-hover-2 font-semibold'
+                : 'hover:text-ink text-dim font-medium'
             }`}
           >
             {t}

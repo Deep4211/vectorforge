@@ -19,6 +19,19 @@ export {
   type EditorSelector,
 } from './hooks/use-editor-selector';
 export { useGlobalKeyboard } from './hooks/use-keyboard';
+export { useTheme } from './hooks/use-theme';
+
+// Theme store (data-theme + persistence; canvas grid colour bridge)
+export {
+  type Theme,
+  initTheme,
+  getTheme,
+  setTheme,
+  toggleTheme,
+  subscribeTheme,
+  resolveInitialTheme,
+  canvasGridColor,
+} from './theme/theme';
 
 // Input normalization (DOM → engine)
 export { toEngineInput, toKeyInput } from './input/normalize';

@@ -72,5 +72,11 @@ export function createEngine(): CanvasEngine {
     viewSize() {
       return viewSize;
     },
+    setGridColor(color) {
+      // Called from a theme effect that may fire before the stage attaches the
+      // canvas; drawFrame() no-ops until attached, then paints the set colour.
+      renderer.setGridColor(color);
+      drawFrame();
+    },
   };
 }

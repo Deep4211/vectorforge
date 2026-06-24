@@ -130,7 +130,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
         aria-label="Command palette"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={onKeyDown}
-        className="w-full max-w-md overflow-hidden rounded-xl border border-[#26262F] bg-[#16161D] shadow-2xl"
+        className="border-border bg-surface-2 w-full max-w-md overflow-hidden rounded-xl border shadow-2xl"
       >
         <input
           ref={inputRef}
@@ -142,7 +142,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
           placeholder="Type a command…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full border-b border-[#26262F] bg-transparent px-4 py-3 text-[#ECECF1] outline-none"
+          className="border-border text-ink w-full border-b bg-transparent px-4 py-3 outline-none"
         />
         <ul
           id="command-palette-list"
@@ -151,17 +151,15 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
           className="max-h-72 overflow-auto py-1"
         >
           {filtered.length === 0 ? (
-            <li className="px-4 py-2 text-sm text-[#5C5C6A]">No matching commands</li>
+            <li className="text-faint px-4 py-2 text-sm">No matching commands</li>
           ) : (
             filtered.map((command, index) => (
               <li key={command.id} role="option" aria-selected={index === 0}>
                 <button
                   type="button"
                   onClick={() => runCommand(command)}
-                  className={`w-full px-4 py-2 text-left text-sm focus:outline-none focus-visible:bg-[#7C5CFF]/30 ${
-                    index === 0
-                      ? 'bg-[#7C5CFF]/15 text-[#ECECF1]'
-                      : 'text-[#9A9AA6] hover:bg-[#1E1E27]'
+                  className={`focus-visible:bg-brand/30 w-full px-4 py-2 text-left text-sm focus:outline-none ${
+                    index === 0 ? 'bg-brand/15 text-ink' : 'text-muted-2 hover:bg-elevated'
                   }`}
                 >
                   {command.title}
