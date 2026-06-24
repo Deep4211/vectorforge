@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+/* Tailwind v4 auto-detects sources from the Vite root (apps/web) only, so the
+   chrome's classes live in a sibling workspace package it would otherwise miss.
+   Scan @vectorforge/ui's source so its utilities are generated. */
+@source '../../../packages/ui/src/**/*.{ts,tsx}';
+
 /* VectorForge design tokens (the dark editor theme). Exposed as Tailwind v4
    theme variables so chrome can reference them as utilities/vars. */
 @theme {
