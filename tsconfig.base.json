@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "force",
+    "useDefineForClassFields": true,
+
+    "composite": true,
+    "incremental": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "sourceMap": true,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnreachableCode": false,
+
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@vectorforge/shared": ["packages/shared/src/index.ts"],
+      "@vectorforge/geometry": ["packages/geometry/src/index.ts"],
+      "@vectorforge/document": ["packages/document/src/index.ts"],
+      "@vectorforge/commands": ["packages/commands/src/index.ts"],
+      "@vectorforge/editor": ["packages/editor/src/index.ts"],
+      "@vectorforge/renderer": ["packages/renderer/src/index.ts"],
+      "@vectorforge/persistence": ["packages/persistence/src/index.ts"],
+      "@vectorforge/ui": ["packages/ui/src/index.ts"]
+    }
+  }
+}

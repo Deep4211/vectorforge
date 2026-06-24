@@ -1,0 +1,12 @@
+node_modules
+dist
+coverage
+*.tsbuildinfo
+pnpm-lock.yaml
+.husky/_
+
+# Imported architectural contracts — preserved verbatim, not reformatted.
+ARCHITECTURE.md
+docs/ARCHITECTURE.md
+docs/PRD.md
+VectorForge_PRD (1).md

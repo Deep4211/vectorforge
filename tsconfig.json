@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "//": "Solution-style root config. Owns no files; orchestrates the project-reference build graph (`tsc -b`). The app (apps/web) is typechecked separately because it is bundled by Vite, not emitted by tsc.",
+  "files": [],
+  "references": [
+    { "path": "packages/shared" },
+    { "path": "packages/geometry" },
+    { "path": "packages/document" },
+    { "path": "packages/commands" },
+    { "path": "packages/editor" },
+    { "path": "packages/renderer" },
+    { "path": "packages/persistence" },
+    { "path": "packages/ui" }
+  ]
+}

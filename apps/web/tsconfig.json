@@ -1,0 +1,10 @@
+{
+  "//": "The app is bundled by Vite, not emitted by tsc — so it is checked standalone (noEmit) rather than via the project-reference build graph. It resolves @vectorforge/* through the path aliases in tsconfig.base.json.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "noEmit": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["src", "tests"]
+}

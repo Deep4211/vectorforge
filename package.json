@@ -1,0 +1,71 @@
+{
+  "name": "vectorforge",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser-native collaborative vector & UI design platform — monorepo root.",
+  "license": "MIT",
+  "author": "Deep Maheshwari",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @vectorforge/web dev",
+    "build": "tsc -b",
+    "build:web": "pnpm --filter @vectorforge/web build",
+    "preview": "pnpm --filter @vectorforge/web preview",
+    "typecheck": "tsc -b && tsc -p apps/web/tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "check:packages": "node scripts/check-package-standards.mjs",
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm check:packages && pnpm check:boundaries && pnpm test",
+    "clean": "node scripts/clean.mjs",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@eslint/js": "^9.17.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^14.6.0",
+    "@types/node": "^22.10.5",
+    "@vitest/coverage-v8": "^3.0.5",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.18",
+    "globals": "^15.14.0",
+    "husky": "^9.1.7",
+    "jsdom": "^26.0.0",
+    "lint-staged": "^15.4.1",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.20.0",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.0.5"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{js,mjs,cjs,json,jsonc,css,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}
