@@ -41,6 +41,7 @@ import {
   type HandlePosition,
 } from './handles';
 import { alignmentGuides, type AlignmentGuide } from './guides';
+import { buildOutline, inspect, type Inspection, type LayerItem } from './view-models';
 import { resolveCursor } from './cursor';
 import { createDefaultTools } from './tools';
 import type { Tool, ToolHost, TransformModifiers } from './tool';
@@ -169,7 +170,7 @@ export class EditorController implements ToolHost {
     // Re-derive the live selection through the lock-aware filter: a command may
     // have removed a selected node or locked one (EDT-6 — locked nodes are never
     // part of the selection, even when locked while already selected).
-    const selection = makeSelection(this.scene, this.state.selection.ids);
+    const selection = this.stableSelection(makeSelection(this.scene, this.state.selection.ids));
     this.store.set({ documentVersion: this.scene.version, dirty: true, selection });
     this.scheduler.requestRender();
   }
@@ -177,6 +178,18 @@ export class EditorController implements ToolHost {
   private resetCycle(): void {
     this.lastHitStack = [];
     this.lastHitChosen = null;
+  }
+
+  /**
+   * Preserve the current selection's identity when its content is unchanged, so a
+   * document edit that does not alter the selection never wakes a selection-only
+   * subscriber (the store-binding contract relies on `Object.is`-stable slices, UI-3).
+   */
+  private stableSelection(next: SelectionState): SelectionState {
+    const current = this.state.selection;
+    return arraysEqual(next.ids, current.ids) && next.primaryId === current.primaryId
+      ? current
+      : next;
   }
 
   /** Execute an undoable document command and record the selection transition for undo/redo. */
@@ -272,6 +285,12 @@ export class EditorController implements ToolHost {
 
   setProperty(id: NodeId, path: string, value: unknown): void {
     this.commit(new SetPropertyCommand(id, path, value));
+  }
+
+  /** Set a node's fill, resolving the backing field per type (frames use `backgroundColor`). */
+  setFill(id: NodeId, color: string): void {
+    const path = this.scene.getOrThrow(id).type === 'frame' ? 'backgroundColor' : 'fill';
+    this.setProperty(id, path, color);
   }
 
   group(): NodeId | null {
@@ -377,7 +396,7 @@ export class EditorController implements ToolHost {
   private applySelection(selection: SelectionState): void {
     // Any non-cycle selection change resets the overlapping-click cycle memory.
     this.resetCycle();
-    this.store.set({ selection });
+    this.store.set({ selection: this.stableSelection(selection) });
     this.scheduler.requestRender();
   }
 
@@ -492,6 +511,18 @@ export class EditorController implements ToolHost {
   guides(): AlignmentGuide[] {
     const ids = this.state.selection.ids;
     return ids.length === 1 ? alignmentGuides(this.scene, ids[0]!) : [];
+  }
+
+  // ---- presentation view models (UI-2/UI-3) -------------------------------
+
+  /** The nested layer-outline view model (re-read when `documentVersion` changes). */
+  outline(): LayerItem[] {
+    return buildOutline(this.scene);
+  }
+
+  /** The inspector view model for the current selection (empty / single / multi). */
+  inspection(): Inspection {
+    return inspect(this.scene, this.state.selection);
   }
 
   beginResize(handle: HandlePosition, world: Point): boolean {

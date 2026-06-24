@@ -24,9 +24,25 @@ export {
   type ResizeOptions,
 } from './handles';
 export { alignmentGuides, type AlignmentGuide, type GuideOrientation } from './guides';
+export { buildOutline, inspect, type LayerItem, type Inspection } from './view-models';
 export { resolveCursor, type CursorContext } from './cursor';
+// Document identity types the presentation layer needs (it imports only editor + shared).
+export type { NodeId, NodeType } from '@vectorforge/document';
 export { type Tool, type ToolHost, type TransformModifiers } from './tool';
 export { createDefaultTools, DRAG_THRESHOLD_PX } from './tools';
+
+// Re-exported coordinate primitives so the presentation layer can normalize raw
+// pointer events into EngineInput without depending on @vectorforge/geometry
+// directly (it imports only @vectorforge/editor + shared, per ENGINE_CONTRACT §6).
+export {
+  Vector2,
+  Rectangle,
+  screenToWorld,
+  worldToScreen,
+  type Point,
+  type Viewport,
+} from '@vectorforge/geometry';
+
 export {
   type ToolId,
   type Modifiers,

@@ -276,7 +276,23 @@ that proves the dependency graph resolves. Toolchain itself is the deliverable.
 
 ---
 
-## Sprint 7 — UI Integration
+## Sprint 7 — UI Integration ✅ (complete)
+
+> Delivered: `@vectorforge/ui` — the React chrome and the store binding. A
+> `CanvasEngine` port (renderer injected at the `apps/web` root, UI-5) drives the
+> **engine-owned** `<canvas>` (UI-4); `useEditorSelector`/`useDocumentVersion`
+> bind components via `useSyncExternalStore` so a pan never re-renders the
+> inspector (UI-3); pointer/keyboard are normalized to `EngineInput`/`KeyInput`
+> at the boundary (the engine never sees a DOM event). Components: `Toolbar`,
+> `CanvasStage`, `LayersPanel` (accessible tree), `Inspector` (empty/single/multi,
+> committing edits as commands), `ZoomControls`, `CommandPalette` (Cmd+K, modal
+> focus trap), `EditorShell`. The editor projects `outline()`/`inspection()` view
+> models so components hold no business logic (UI-2). `apps/web` composes the
+> Canvas2D renderer + rAF frame loop + a sample document and renders the shell;
+> Tailwind v4 design tokens added. 299 tests pass (component tests for inspector
+> modes, layer-tree a11y, palette focus trap, and selector isolation). Scoped out
+> (documented): the Assets/Pages panels, context menu and minimap are stubs/absent;
+> Playwright E2E + visual diffs await the browser-matrix harness (Sprint 9-era).
 
 **Goals.** Build the React chrome and bind it to the store (ARCHITECTURE.md §4.2,
 PRD §10; against the approved high-fidelity UI design provided as the project's
