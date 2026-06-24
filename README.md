@@ -4,7 +4,7 @@
 > built on a custom rendering engine, a layer-based scene graph, and a
 > framework-independent editor core.
 
-[![CI](https://github.com/your-org/vectorforge/actions/workflows/ci.yml/badge.svg)](./.github/workflows/ci.yml)
+[![CI](https://github.com/Deep4211/vectorforge/actions/workflows/ci.yml/badge.svg)](./.github/workflows/ci.yml)
 &nbsp;·&nbsp; License: MIT &nbsp;·&nbsp; pnpm workspaces · TypeScript · React 19 · Vite 6 · Vitest 3
 
 ---
@@ -17,10 +17,12 @@ an infinite zoomable canvas, a layer-based document model, reusable components,
 real-time multiplayer, commenting, version history, and developer handoff into a
 single tool that runs entirely in the browser with no install.
 
-This repository is the engineering monorepo. It is currently at **Sprint 0 —
-Repository Foundation**: the production-grade toolchain and package architecture
-are in place; feature implementation begins at Sprint 1 (see
-[docs/ROADMAP.md](./docs/ROADMAP.md)).
+This repository is the engineering monorepo. **Sprint 0 (foundation)** and
+**Sprint 1 (the geometry engine)** are complete: the production-grade toolchain
+and package architecture are in place, and `@vectorforge/geometry` ships a pure,
+immutable, dependency-free math library (Vector2 · Matrix3 · Rectangle ·
+BoundingBox · Transform + the coordinate pipeline) at 100% test coverage. Work
+continues per [docs/ROADMAP.md](./docs/ROADMAP.md).
 
 ## Vision
 
@@ -170,7 +172,7 @@ Target one package with pnpm filters, e.g. `pnpm --filter @vectorforge/web dev`.
 | Sprint   | Theme                                                              |
 | -------- | ------------------------------------------------------------------ |
 | **0** ✅ | Repository foundation & engineering setup                          |
-| 1        | Geometry engine (Vector2/Matrix3/Rect, coordinate pipeline)        |
+| **1** ✅ | Geometry engine (Vector2/Matrix3/Rect, coordinate pipeline)        |
 | 2        | Document model & scene graph                                       |
 | 3        | Command system & history (undo/redo)                               |
 | 4        | Editor core & state management                                     |

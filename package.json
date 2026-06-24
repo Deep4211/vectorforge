@@ -24,6 +24,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "bench": "vitest bench --run",
     "check:packages": "node scripts/check-package-standards.mjs",
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm check:packages && pnpm check:boundaries && pnpm test",

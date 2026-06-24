@@ -30,5 +30,8 @@ Thumbs.db
 .idea/
 *.swp
 
+# Local agent / tooling state
+.claude/
+
 # Husky internals (managed by `husky` on install)
 .husky/_/

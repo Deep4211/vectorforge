@@ -24,6 +24,9 @@ export default defineConfig({
           include: [
             'packages/{geometry,document,commands,editor,renderer,persistence,shared}/tests/**/*.test.ts',
           ],
+          benchmark: {
+            include: ['packages/*/tests/**/*.bench.ts'],
+          },
         },
       },
       {
@@ -34,6 +37,9 @@ export default defineConfig({
           globals: true,
           setupFiles: ['./vitest.setup.ts'],
           include: ['packages/ui/tests/**/*.test.{ts,tsx}', 'apps/web/tests/**/*.test.{ts,tsx}'],
+          benchmark: {
+            include: [],
+          },
         },
       },
     ],

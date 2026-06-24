@@ -55,7 +55,13 @@ that proves the dependency graph resolves. Toolchain itself is the deliverable.
 
 ---
 
-## Sprint 1 — Geometry Engine
+## Sprint 1 — Geometry Engine ✅ (complete)
+
+> Delivered: `Vector2`, `Matrix3`, `Rectangle` (`Rect`), `BoundingBox`,
+> `Transform`, scalar numeric-safety helpers, and the world ↔ screen coordinate
+> pipeline (`screenToWorld` / `worldToScreen` / `viewportMatrix` /
+> `zoomViewportAt`). Pure, immutable, zero-dependency; 100% line/branch/function
+> coverage; seeded property tests; micro-benchmarks (`pnpm bench`).
 
 **Goals.** Implement the pure math foundation every subsystem depends on
 (ARCHITECTURE.md §6). PRD: CAN-001/003, TRN, GUI.
