@@ -17,12 +17,13 @@ an infinite zoomable canvas, a layer-based document model, reusable components,
 real-time multiplayer, commenting, version history, and developer handoff into a
 single tool that runs entirely in the browser with no install.
 
-This repository is the engineering monorepo. **Sprint 0 (foundation)** and
-**Sprint 1 (the geometry engine)** are complete: the production-grade toolchain
-and package architecture are in place, and `@vectorforge/geometry` ships a pure,
-immutable, dependency-free math library (Vector2 · Matrix3 · Rectangle ·
-BoundingBox · Transform + the coordinate pipeline) at 100% test coverage. Work
-continues per [docs/ROADMAP.md](./docs/ROADMAP.md).
+This repository is the engineering monorepo. **Sprints 0–2 are complete:** the
+production-grade toolchain and package architecture (Sprint 0), the pure
+immutable `@vectorforge/geometry` math library (Sprint 1), and the
+`@vectorforge/document` model — an immutable-node scene graph with z-order,
+world-transform resolution, effective lock/visibility, and deterministic,
+validated serialization (Sprint 2). Work continues per
+[docs/ROADMAP.md](./docs/ROADMAP.md).
 
 ## Vision
 
@@ -173,7 +174,7 @@ Target one package with pnpm filters, e.g. `pnpm --filter @vectorforge/web dev`.
 | -------- | ------------------------------------------------------------------ |
 | **0** ✅ | Repository foundation & engineering setup                          |
 | **1** ✅ | Geometry engine (Vector2/Matrix3/Rect, coordinate pipeline)        |
-| 2        | Document model & scene graph                                       |
+| **2** ✅ | Document model & scene graph                                       |
 | 3        | Command system & history (undo/redo)                               |
 | 4        | Editor core & state management                                     |
 | 5        | Rendering engine (Canvas2D behind `IRenderer`)                     |

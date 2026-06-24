@@ -89,7 +89,16 @@ that proves the dependency graph resolves. Toolchain itself is the deliverable.
 
 ---
 
-## Sprint 2 — Document Model & Scene Graph
+## Sprint 2 — Document Model & Scene Graph ✅ (complete)
+
+> Delivered: the `BaseNode` discriminated-union hierarchy (Frame, Group,
+> Rectangle, Ellipse, Line, Text, Image), the id-indexed `SceneGraph` (immutable
+> nodes in a mutable, versioned container), traversal (render/hit order,
+> descendants/ancestors, render/outline tree), z-order ops, cycle-checked
+> reparent, remove/restore for undo, computed effective lock/visibility, cached
+> world matrices/bounds, and deterministic validated serialization. ~99% line
+> coverage. Scoped out (documented): the virtual-group overlay (Sprint 7), the
+> full `.vf` envelope (Sprint 8), ComponentInstance nodes (V2).
 
 **Goals.** The authoritative document model (ARCHITECTURE.md §5; PRD §9, F-3).
 
