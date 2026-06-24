@@ -5,18 +5,31 @@
    Scan @vectorforge/ui's source so its utilities are generated. */
 @source '../../../packages/ui/src/**/*.{ts,tsx}';
 
-/* VectorForge design tokens (the dark editor theme). Exposed as Tailwind v4
-   theme variables so chrome can reference them as utilities/vars. */
+/* VectorForge design tokens (DesignOS.dc.html / docs/design-spec.md). */
 @theme {
+  --font-sans: Onest, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
   --color-canvas: #0b0b0e;
-  --color-surface: #101015;
-  --color-panel: #16161d;
+  --color-panel: #121217;
+  --color-surface: #1a1a22;
+  --color-surface-2: #16161d;
   --color-border: #26262f;
+  --color-border-strong: #232330;
+  --color-border-soft: #1f1f29;
   --color-ink: #ececf1;
-  --color-muted: #9a9aa6;
+  --color-ink-bright: #f2f2f6;
+  --color-muted: #a6a6b2;
+  --color-muted-2: #9a9aa6;
   --color-faint: #5c5c6a;
+  --color-faint-2: #6e6e7c;
   --color-brand: #7c5cff;
+  --color-brand-2: #8b6bff;
   --color-positive: #3fcf8e;
+  --color-warn: #f5a623;
+  --color-info: #5b9bff;
+  --color-danger: #ff6b6b;
+  --color-guide: #ff4d8d;
 }
 
 html,
@@ -29,13 +42,30 @@ body {
   margin: 0;
   background-color: var(--color-canvas);
   color: var(--color-ink);
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* Thin dark scrollbars, matching the mock. */
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a33;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a45;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* Honor reduced-motion preferences (UI-6 / PRD §11.2). */

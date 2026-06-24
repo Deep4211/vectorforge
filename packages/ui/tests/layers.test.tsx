@@ -20,7 +20,7 @@ describe('<LayersPanel /> — accessibility', () => {
     expect(screen.getAllByRole('treeitem')).toHaveLength(2);
   });
 
-  it('nests children under a group via role="group"', () => {
+  it('represents nesting via an expandable group with aria-level', () => {
     const engine = makeTestEngine();
     const a = engine.controller.createShape('rectangle', new Rectangle(0, 0, 10, 10));
     const b = engine.controller.createShape('rectangle', new Rectangle(20, 0, 10, 10));
@@ -28,8 +28,12 @@ describe('<LayersPanel /> — accessibility', () => {
     engine.controller.group();
     renderWithEngine(<LayersPanel />, engine);
 
-    expect(screen.getByRole('group')).toBeInTheDocument();
-    expect(screen.getAllByRole('treeitem')).toHaveLength(3); // group + 2 children
+    const items = screen.getAllByRole('treeitem');
+    expect(items).toHaveLength(3); // group + 2 children
+    const group = items.find((i) => i.getAttribute('aria-expanded') === 'true')!;
+    expect(group).toHaveAttribute('aria-level', '1');
+    // The children sit one level deeper.
+    expect(items.filter((i) => i.getAttribute('aria-level') === '2')).toHaveLength(2);
   });
 
   it('selects a layer when its row is activated, reflecting aria-selected', () => {

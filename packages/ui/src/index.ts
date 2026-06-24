@@ -26,10 +26,15 @@ export { toEngineInput, toKeyInput } from './input/normalize';
 // Chrome components
 export { EditorShell } from './components/EditorShell';
 export { Toolbar } from './components/Toolbar';
+export { LeftPanel } from './components/LeftPanel';
 export { CanvasStage } from './components/CanvasStage';
 export { LayersPanel } from './components/LayersPanel';
 export { Inspector } from './components/Inspector';
 export { ZoomControls } from './components/ZoomControls';
+export { Rulers } from './components/Rulers';
+export { SelectionOverlay } from './components/SelectionOverlay';
+export { Minimap } from './components/Minimap';
+export { BottomDock } from './components/BottomDock';
 export { CommandPalette } from './components/CommandPalette';
 
 /** Package identity (stable across the project; consumed by the app shell). */
