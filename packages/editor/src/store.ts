@@ -47,7 +47,7 @@ export class EditorStore {
   private readonly subscriptions = new Set<Subscription<any>>();
 
   constructor(
-    private readonly scene: SceneGraph,
+    private scene: SceneGraph,
     viewport: Viewport = DEFAULT_VIEWPORT,
   ) {
     this.state = initialState(viewport);
@@ -55,6 +55,11 @@ export class EditorStore {
 
   getScene(): SceneGraph {
     return this.scene;
+  }
+
+  /** Swap in a freshly-loaded document. Callers reset history + dependent state. */
+  replaceScene(scene: SceneGraph): void {
+    this.scene = scene;
   }
 
   getState(): Readonly<EditorState> {

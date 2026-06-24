@@ -16,9 +16,11 @@ import {
   createRectangle,
   createSequentialIdGenerator,
   createText,
+  maxSequentialId,
   SceneGraph,
   type IdGenerator,
   type NodeId,
+  type SerializedDocument,
 } from '@vectorforge/document';
 import {
   CompositeCommand,
@@ -129,8 +131,8 @@ function topLevel(scene: SceneGraph, ids: readonly NodeId[]): NodeId[] {
  */
 export class EditorController implements ToolHost {
   readonly store: EditorStore;
-  private readonly history: HistoryManager;
-  private readonly ids: IdGenerator;
+  private history: HistoryManager;
+  private ids: IdGenerator;
   private readonly scheduler: RenderScheduler;
   private readonly limit: number;
   private readonly tools: Map<ToolId, Tool>;
@@ -168,6 +170,48 @@ export class EditorController implements ToolHost {
 
   get state(): Readonly<EditorState> {
     return this.store.getState();
+  }
+
+  // ---- document load / save (persistence) ---------------------------------
+
+  /** The current document as a plain serializable structure (for `.vf` encoding). */
+  toDocument(): SerializedDocument {
+    return this.scene.toJSON();
+  }
+
+  /**
+   * Replace the whole document with a freshly-parsed one (e.g. an opened `.vf`).
+   * Resets history, selection, and in-progress interaction; reseeds the id
+   * generator past the loaded ids so new nodes never collide; and marks the
+   * document clean (a just-loaded file has no unsaved changes).
+   */
+  loadDocument(doc: SerializedDocument): void {
+    const scene = SceneGraph.fromJSON(doc);
+    this.store.replaceScene(scene);
+    this.history = new HistoryManager({ scene }, { limit: this.limit });
+    this.ids = createSequentialIdGenerator('node', maxSequentialId(doc.nodes.map((n) => n.id)));
+    this.undoSelections = [];
+    this.redoSelections = [];
+    this.resetCycle();
+    this.store.set({
+      selection: EMPTY_SELECTION,
+      hover: null,
+      hoverHandle: null,
+      interaction: 'idle',
+      draft: null,
+      dragOffset: null,
+      activeHandle: null,
+      resizePreview: null,
+      editingTextId: null,
+      documentVersion: scene.version,
+      dirty: false,
+    });
+    this.scheduler.requestRender();
+  }
+
+  /** Clear the unsaved-changes flag after a successful save. */
+  markSaved(): void {
+    if (this.state.dirty) this.store.set({ dirty: false });
   }
 
   // ---- command plumbing ---------------------------------------------------

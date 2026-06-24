@@ -28,6 +28,9 @@ export { paintDotGrid, type DotGridOptions } from './grid';
 // Frame scheduling
 export { FrameScheduler, type FrameSchedulerOptions } from './scheduler';
 
+// Export (vector / raster derive from the same RenderScene)
+export { documentBounds, sceneToSvg, type SvgExportOptions } from './export';
+
 // Port + projection types
 export type {
   IRenderer,

@@ -20,6 +20,7 @@ export {
 } from './hooks/use-editor-selector';
 export { useGlobalKeyboard } from './hooks/use-keyboard';
 export { useTheme } from './hooks/use-theme';
+export { useAuth } from './hooks/use-auth';
 
 // Theme store (data-theme + persistence; canvas grid colour bridge)
 export {
@@ -32,6 +33,24 @@ export {
   resolveInitialTheme,
   canvasGridColor,
 } from './theme/theme';
+
+// Auth store (wraps the injected AuthProvider port) + screen
+export {
+  type AuthState,
+  type AuthStatus,
+  initAuth,
+  restoreSession,
+  signIn,
+  signUp,
+  signOut,
+  clearAuthError,
+  getAuthState,
+  subscribeAuth,
+} from './auth/auth-store';
+export { AuthScreen } from './components/AuthScreen';
+
+// Workspace (document I/O port: save/open/export) — implemented at apps/web
+export { type WorkspaceService, WorkspaceProvider, useWorkspace } from './workspace';
 
 // Input normalization (DOM → engine)
 export { toEngineInput, toKeyInput } from './input/normalize';

@@ -1,14 +1,34 @@
 /**
  * `@vectorforge/shared` — public API entry.
  *
- * Cross-cutting primitives depended on by every layer: stable id generation,
- * the `Result` type, a typed event emitter, assertion helpers, the logger, and
- * the framework-agnostic port interfaces (IClock, IdGenerator, …). These land
- * incrementally alongside Sprints 1–4 (see docs/ROADMAP.md).
+ * Cross-cutting primitives depended on by every layer. Currently: the
+ * `AuthProvider` port + auth contracts and the pure auth field validation,
+ * shared by the presentation layer (forms) and the infrastructure adapter
+ * (the local provider) so the rules never drift across the layer boundary.
  *
- * Until then this entry exports only the package identity so the build, lint
- * and test toolchain can be validated end to end.
+ * Import only through this entry (ENGINE_CONTRACT.md §6 DEP-5).
  */
+export {
+  type AuthUser,
+  type AuthSession,
+  type Credentials,
+  type SignUpInput,
+  type AuthErrorCode,
+  type AuthProvider,
+  AuthError,
+  authErrorCode,
+} from './auth';
+export {
+  type FieldErrors,
+  MIN_PASSWORD_LENGTH,
+  validateEmail,
+  validatePassword,
+  validateDisplayName,
+  validateSignUp,
+  isValid,
+} from './auth-validation';
+
+/** Package identity (stable across the project; consumed by the app shell). */
 export const PACKAGE_ID = '@vectorforge/shared' as const;
 
 /** Architectural layer (see docs/ENGINE_CONTRACT.md §6). */

@@ -15,12 +15,27 @@ export interface IdGenerator {
  * Deterministic, monotonically increasing generator: `${prefix}-1`, `${prefix}-2`, …
  * Reproducible by design — ideal for tests and stable serialization fixtures.
  */
-export function createSequentialIdGenerator(prefix = 'node'): IdGenerator {
-  let counter = 0;
+export function createSequentialIdGenerator(prefix = 'node', start = 0): IdGenerator {
+  let counter = start;
   return {
     next(): NodeId {
       counter += 1;
       return `${prefix}-${counter}`;
     },
   };
+}
+
+/**
+ * Highest `N` among ids shaped `${prefix}-N` (0 if none). Used to reseed the id
+ * generator after loading a document so freshly-created nodes never collide with
+ * loaded ones.
+ */
+export function maxSequentialId(ids: Iterable<string>, prefix = 'node'): number {
+  const re = new RegExp(`^${prefix}-(\\d+)$`);
+  let max = 0;
+  for (const id of ids) {
+    const match = re.exec(id);
+    if (match) max = Math.max(max, Number(match[1]));
+  }
+  return max;
 }

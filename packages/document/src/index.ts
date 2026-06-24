@@ -34,7 +34,7 @@ export type {
 export { SCHEMA_VERSION } from './types';
 
 // Id generation
-export { type IdGenerator, createSequentialIdGenerator } from './id';
+export { type IdGenerator, createSequentialIdGenerator, maxSequentialId } from './id';
 
 // Node factories + immutable updates
 export {

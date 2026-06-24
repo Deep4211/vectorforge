@@ -536,6 +536,45 @@ describe('EditorController — keyboard (arrow nudge + IME guard, EDT-8)', () =>
   });
 });
 
+describe('EditorController — document load/save (persistence)', () => {
+  it('loads a serialized document, replacing the scene and clearing dirty', () => {
+    const { controller } = makeController();
+    controller.createShape('rectangle', new Rectangle(0, 0, 10, 10)); // makes it dirty
+    expect(controller.state.dirty).toBe(true);
+
+    const source = makeController().controller;
+    const a = source.createShape('rectangle', new Rectangle(5, 5, 20, 20));
+    const doc = source.toDocument();
+
+    controller.loadDocument(doc);
+    expect(controller.state.dirty).toBe(false); // a freshly-loaded doc is clean
+    expect(controller.state.selection.ids).toEqual([]);
+    expect(controller.scene.has(a)).toBe(true);
+    expect(controller.toDocument()).toEqual(doc); // round-trips
+  });
+
+  it('reseeds ids after load so new nodes never collide with loaded ones', () => {
+    const source = makeController().controller;
+    source.createShape('rectangle', new Rectangle(0, 0, 10, 10)); // node-1
+    source.createShape('ellipse', new Rectangle(0, 0, 10, 10)); // node-2
+    const doc = source.toDocument();
+
+    const { controller } = makeController();
+    controller.loadDocument(doc);
+    const fresh = controller.createShape('rectangle', new Rectangle(0, 0, 10, 10));
+    expect(controller.scene.has(fresh)).toBe(true);
+    expect(doc.nodes.some((n) => n.id === fresh)).toBe(false); // no collision
+  });
+
+  it('markSaved clears the dirty flag', () => {
+    const { controller } = makeController();
+    controller.createShape('rectangle', new Rectangle(0, 0, 10, 10));
+    expect(controller.state.dirty).toBe(true);
+    controller.markSaved();
+    expect(controller.state.dirty).toBe(false);
+  });
+});
+
 describe('EditorController — previewBounds (live drag/resize overlay)', () => {
   it('shifts the selection bounds by the live drag offset', () => {
     const { controller } = makeController();
