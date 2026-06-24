@@ -12,6 +12,7 @@ import {
   createEllipse,
   createFrame,
   createGroup,
+  createLine,
   createRectangle,
   createSequentialIdGenerator,
   createText,
@@ -29,6 +30,7 @@ import {
   MoveNodeCommand,
   ReorderCommand,
   ResizeNodeCommand,
+  RotateNodeCommand,
   SetPropertyCommand,
   UngroupCommand,
 } from '@vectorforge/commands';
@@ -84,6 +86,7 @@ const SHORTCUT_TOOLS: Readonly<Record<string, ToolId>> = {
   f: 'frame',
   r: 'rectangle',
   o: 'ellipse',
+  l: 'line',
   t: 'text',
   h: 'hand',
 };
@@ -270,6 +273,18 @@ export class EditorController implements ToolHost {
     return id;
   }
 
+  /**
+   * Create a line between two world points. The node keeps the identity transform
+   * and stores `a`/`b` directly, so the endpoints read in world space until the
+   * line is moved or rotated (its transform then carries the offset/angle).
+   */
+  createLine(a: Point, b: Point): NodeId {
+    const id = this.ids.next();
+    const node = createLine({ id, a: { x: a.x, y: a.y }, b: { x: b.x, y: b.y } });
+    this.commit(new CreateNodeCommand(node), [id]);
+    return id;
+  }
+
   // ---- inline text editing ------------------------------------------------
 
   /** Enter inline edit on a text node (selects it). Returns false for non-text/missing nodes. */
@@ -335,6 +350,11 @@ export class EditorController implements ToolHost {
   setFill(id: NodeId, color: string): void {
     const path = this.scene.getOrThrow(id).type === 'frame' ? 'backgroundColor' : 'fill';
     this.setProperty(id, path, color);
+  }
+
+  /** Set a node's rotation in degrees (one history entry; the command normalizes to [0, 360)). */
+  setRotation(id: NodeId, degrees: number): void {
+    this.commit(new RotateNodeCommand(id, degrees));
   }
 
   group(): NodeId | null {

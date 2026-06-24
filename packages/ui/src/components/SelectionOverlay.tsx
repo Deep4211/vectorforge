@@ -107,8 +107,8 @@ export function SelectionOverlay() {
         </div>
       )}
 
-      {/* marquee */}
-      {draft?.type === 'marquee' &&
+      {/* marquee selection box or shape-draw ghost */}
+      {(draft?.type === 'marquee' || draft?.type === 'create') &&
         (() => {
           const r = rectFromWorld(
             {
@@ -119,11 +119,36 @@ export function SelectionOverlay() {
             },
             viewport,
           );
+          const ghost =
+            draft.type === 'marquee'
+              ? 'border-brand bg-brand/[0.12] border'
+              : 'border-brand border border-dashed';
           return (
             <div
-              className="border-brand bg-brand/[0.12] absolute border"
+              className={`absolute ${ghost}`}
               style={{ left: r.x, top: r.y, width: r.w, height: r.h }}
             />
+          );
+        })()}
+
+      {/* live line-draw preview */}
+      {draft?.type === 'line' &&
+        (() => {
+          const a = worldToScreen(draft.a, viewport);
+          const b = worldToScreen(draft.b, viewport);
+          return (
+            <svg className="absolute inset-0 h-full w-full" style={{ overflow: 'visible' }}>
+              <line
+                x1={a.x}
+                y1={a.y}
+                x2={b.x}
+                y2={b.y}
+                style={{ stroke: 'var(--color-brand)' }}
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+                strokeLinecap="round"
+              />
+            </svg>
           );
         })()}
     </div>

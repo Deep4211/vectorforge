@@ -34,8 +34,22 @@ export type Inspection =
       readonly visible: boolean;
       readonly locked: boolean;
       readonly fill: string | null;
+      /** Line stroke (color + width), else `null` for non-line nodes. */
+      readonly stroke: { readonly color: string; readonly width: number } | null;
+      /** Text typography, else `null` for non-text nodes. */
+      readonly text: TextStyle | null;
     }
   | { readonly mode: 'multi'; readonly count: number; readonly ids: readonly NodeId[] };
+
+/** Editable typography of a text node (mirrors the document's TextNode fields). */
+export interface TextStyle {
+  readonly fontFamily: string;
+  readonly fontWeight: number;
+  readonly fontSize: number;
+  readonly lineHeight: number;
+  readonly letterSpacing: number;
+  readonly textAlign: string;
+}
 
 /** The inline text-editor overlay's target: a text node's content, world origin, and type face. */
 export interface TextEditTarget {
@@ -63,6 +77,22 @@ function fillOf(node: SceneNode): string | null {
   if (node.type === 'rectangle' || node.type === 'ellipse' || node.type === 'text')
     return node.fill;
   return null;
+}
+
+function strokeOf(node: SceneNode): { readonly color: string; readonly width: number } | null {
+  return node.type === 'line' ? { color: node.stroke, width: node.strokeWidth } : null;
+}
+
+function textOf(node: SceneNode): TextStyle | null {
+  if (node.type !== 'text') return null;
+  return {
+    fontFamily: node.fontFamily,
+    fontWeight: node.fontWeight,
+    fontSize: node.fontSize,
+    lineHeight: node.lineHeight,
+    letterSpacing: node.letterSpacing,
+    textAlign: node.textAlign,
+  };
 }
 
 /** Build the nested layer-outline view model from the scene's roots. */
@@ -104,5 +134,7 @@ export function inspect(scene: SceneGraph, selection: SelectionState): Inspectio
     visible: node.visibility,
     locked: node.locked,
     fill: fillOf(node),
+    stroke: strokeOf(node),
+    text: textOf(node),
   };
 }

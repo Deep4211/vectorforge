@@ -38,6 +38,7 @@ export function resolveCursor(ctx: CursorContext): string {
     case 'frame':
     case 'rectangle':
     case 'ellipse':
+    case 'line':
       return 'crosshair';
     case 'move':
       return 'default';

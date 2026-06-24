@@ -40,6 +40,44 @@ export class MoveNodeCommand extends Command {
   }
 }
 
+/** Rotate a node by setting its transform rotation (degrees). Consecutive rotations coalesce (CMD-3). */
+export class RotateNodeCommand extends Command {
+  readonly type = 'rotate-node';
+  private from: number | null;
+
+  constructor(
+    readonly id: NodeId,
+    private readonly to: number,
+    from: number | null = null,
+  ) {
+    super();
+    this.from = from;
+  }
+
+  execute(ctx: CommandContext): void {
+    const node = ctx.scene.getOrThrow(this.id);
+    if (this.from === null) this.from = node.transform.rotation;
+    ctx.scene.update(this.id, (n) => withTransform(n, n.transform.withRotation(this.to)));
+  }
+
+  undo(ctx: CommandContext): void {
+    const from = this.from;
+    if (from === null) return;
+    ctx.scene.update(this.id, (n) => withTransform(n, n.transform.withRotation(from)));
+  }
+
+  override mergeWith(next: ICommand): ICommand | null {
+    if (next instanceof RotateNodeCommand && next.id === this.id) {
+      return new RotateNodeCommand(this.id, next.to, this.from);
+    }
+    return null;
+  }
+
+  toOp(): Op {
+    return { kind: this.type, id: this.id, to: this.to };
+  }
+}
+
 /**
  * Resize a node's `size`. Works for frame/rectangle/ellipse/image and for text
  * (including auto-sized text, whose `size` is `null` until first resized).

@@ -2,7 +2,7 @@ import { Rectangle, Vector2 } from '@vectorforge/geometry';
 import type { Draft, EngineInput, ToolId } from './types';
 import type { Tool, ToolHost } from './tool';
 
-function draftFrom(type: Draft['type'], a: Vector2, b: Vector2): Draft {
+function draftFrom(type: 'create' | 'marquee', a: Vector2, b: Vector2): Draft {
   const r = Rectangle.fromPoints(a, b);
   return { type, rect: { x: r.x, y: r.y, w: r.w, h: r.h } };
 }
@@ -170,6 +170,51 @@ class DrawTool implements Tool {
   }
 }
 
+/** Snap `b` so the segment `a→b` lies on the nearest 45° axis (keeps its length). */
+function snapTo45(a: Vector2, b: Vector2): Vector2 {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const len = Math.hypot(dx, dy);
+  if (len === 0) return b;
+  const step = Math.PI / 4;
+  const angle = Math.round(Math.atan2(dy, dx) / step) * step;
+  return new Vector2(a.x + Math.cos(angle) * len, a.y + Math.sin(angle) * len);
+}
+
+/** Draw a straight line: drag from a→b, preview live, commit on release. Shift snaps to 45°. */
+class LineTool implements Tool {
+  readonly id: ToolId = 'line';
+  private start: Vector2 | null = null;
+
+  onPointerDown(input: EngineInput, host: ToolHost): void {
+    this.start = input.world;
+    host.setGesture('drawing', { type: 'line', a: input.world, b: input.world });
+  }
+
+  onPointerMove(input: EngineInput, host: ToolHost): void {
+    if (!this.start) return;
+    const end = input.modifiers.shift ? snapTo45(this.start, input.world) : input.world;
+    host.setGesture('drawing', { type: 'line', a: this.start, b: end });
+  }
+
+  onPointerUp(input: EngineInput, host: ToolHost): void {
+    if (this.start) {
+      const end = input.modifiers.shift ? snapTo45(this.start, input.world) : input.world;
+      if (this.start.distanceTo(end) > 0) host.createLine(this.start, end);
+    }
+    this.onCancel(host);
+  }
+
+  onCancel(host: ToolHost): void {
+    this.start = null;
+    host.cancelGesture();
+  }
+
+  cursor(): string {
+    return 'crosshair';
+  }
+}
+
 /** Place a text node at the click point and immediately enter inline editing. */
 class TextTool implements Tool {
   readonly id: ToolId = 'text';
@@ -234,6 +279,7 @@ export function createDefaultTools(): Map<ToolId, Tool> {
     new DrawTool('frame', 'frame'),
     new DrawTool('rectangle', 'rectangle'),
     new DrawTool('ellipse', 'ellipse'),
+    new LineTool(),
     new TextTool(),
     new HandTool(),
   ];

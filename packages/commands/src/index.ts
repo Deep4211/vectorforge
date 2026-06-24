@@ -13,7 +13,12 @@ export { type ICommand, type CommandContext, type Op, Command, indexInSiblings }
 export { CompositeCommand } from './composite';
 export { HistoryManager, type HistoryOptions } from './history';
 export { CreateNodeCommand, DeleteNodeCommand } from './node-commands';
-export { MoveNodeCommand, ResizeNodeCommand, SetPropertyCommand } from './mutation-commands';
+export {
+  MoveNodeCommand,
+  ResizeNodeCommand,
+  RotateNodeCommand,
+  SetPropertyCommand,
+} from './mutation-commands';
 export { ReorderCommand, ReparentCommand } from './structure-commands';
 export { createGroupCommand, UngroupCommand } from './group-commands';
 

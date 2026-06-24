@@ -15,6 +15,7 @@ const TOOLS: readonly ToolSpec[] = [
   { id: 'frame', label: 'Frame', shortcut: 'F', path: PATHS.frame },
   { id: 'rectangle', label: 'Rectangle', shortcut: 'R', path: PATHS.rectangle },
   { id: 'ellipse', label: 'Ellipse', shortcut: 'O', path: PATHS.ellipse },
+  { id: 'line', label: 'Line', shortcut: 'L', path: PATHS.line },
   { id: 'text', label: 'Text', shortcut: 'T', path: PATHS.text },
   { id: 'hand', label: 'Hand', shortcut: 'H', path: PATHS.hand },
 ];

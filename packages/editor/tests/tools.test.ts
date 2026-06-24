@@ -25,7 +25,9 @@ describe('tools — draw', () => {
     c.handlePointerDown(pointer(10, 10));
     c.handlePointerMove(pointer(40, 30));
     expect(c.state.interaction).toBe('drawing');
-    expect(c.state.draft?.rect).toEqual({ x: 10, y: 10, w: 30, h: 20 });
+    const draft = c.state.draft;
+    if (draft?.type !== 'create') throw new Error('expected a create draft');
+    expect(draft.rect).toEqual({ x: 10, y: 10, w: 30, h: 20 });
     c.handlePointerUp(pointer(40, 30));
 
     expect(c.state.interaction).toBe('idle');
@@ -145,6 +147,46 @@ describe('tools — text', () => {
     const node = c.scene.getOrThrow(id);
     expect(node.type).toBe('text');
     expect(node.transform.position.equals(new Vector2(50, 60))).toBe(true);
+  });
+});
+
+describe('tools — line', () => {
+  it('drags to draw a line, previewing endpoints then committing on release', () => {
+    const c = controller();
+    c.setTool('line');
+    c.handlePointerDown(pointer(10, 10));
+    c.handlePointerMove(pointer(40, 70));
+    const draft = c.state.draft;
+    if (draft?.type !== 'line') throw new Error('expected a line draft');
+    expect(draft.a).toEqual({ x: 10, y: 10 });
+    expect(draft.b).toEqual({ x: 40, y: 70 });
+    c.handlePointerUp(pointer(40, 70));
+
+    expect(c.state.interaction).toBe('idle');
+    expect(c.state.draft).toBeNull();
+    const node = c.scene.getOrThrow(c.scene.roots()[0]!);
+    if (node.type !== 'line') throw new Error('expected a line node');
+    expect(node.a).toEqual({ x: 10, y: 10 });
+    expect(node.b).toEqual({ x: 40, y: 70 });
+  });
+
+  it('Shift snaps the line to the nearest 45° axis (a near-horizontal drag becomes horizontal)', () => {
+    const c = controller();
+    c.setTool('line');
+    c.handlePointerDown(pointer(0, 0));
+    c.handlePointerUp(pointer(100, 8, { modifiers: { ...NO_MODIFIERS, shift: true } }));
+    const node = c.scene.getOrThrow(c.scene.roots()[0]!);
+    if (node.type !== 'line') throw new Error('expected a line node');
+    expect(node.b.y).toBeCloseTo(0, 6); // snapped flat
+    expect(node.b.x).toBeGreaterThan(99); // length preserved (~100.3)
+  });
+
+  it('a zero-length line creates nothing', () => {
+    const c = controller();
+    c.setTool('line');
+    c.handlePointerDown(pointer(20, 20));
+    c.handlePointerUp(pointer(20, 20));
+    expect(c.scene.size).toBe(0);
   });
 });
 

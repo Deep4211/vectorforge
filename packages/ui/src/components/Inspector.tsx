@@ -40,6 +40,122 @@ function Field({
   );
 }
 
+/** Swatch + hex row, shared by Fill and Stroke. */
+function ColorRow({
+  label,
+  value,
+  onCommit,
+}: {
+  label: string;
+  value: string;
+  onCommit: (value: string) => void;
+}) {
+  return (
+    <div className="border-border bg-surface flex items-center gap-2.5 rounded-lg border px-2.5 py-1.5">
+      <span
+        aria-hidden="true"
+        className="h-[22px] w-[22px] flex-none rounded-md border border-white/15"
+        style={{ backgroundColor: value }}
+      />
+      <input
+        type="text"
+        key={value}
+        defaultValue={value}
+        aria-label={label}
+        onBlur={(e) => onCommit(e.currentTarget.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') onCommit(e.currentTarget.value);
+        }}
+        className="text-ink flex-1 bg-transparent font-mono text-xs outline-none"
+      />
+    </div>
+  );
+}
+
+interface Option {
+  readonly value: string;
+  readonly label: string;
+}
+
+/** Labeled dropdown styled like {@link Field}; tolerates a current value outside `options`. */
+function Select({
+  label,
+  value,
+  options,
+  onCommit,
+}: {
+  label: string;
+  value: string;
+  options: readonly Option[];
+  onCommit: (value: string) => void;
+}) {
+  const known = options.some((o) => o.value === value);
+  return (
+    <div className="border-border bg-surface flex h-[30px] items-center gap-1.5 rounded-lg border px-2.5">
+      <span className="text-faint text-[11px]">{label}</span>
+      <select
+        value={value}
+        aria-label={label}
+        onChange={(e) => onCommit(e.currentTarget.value)}
+        className="text-ink [&>option]:text-ink w-full cursor-pointer bg-transparent text-xs outline-none [&>option]:bg-[#1A1A22]"
+      >
+        {!known && <option value={value}>{value}</option>}
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+const FONT_FAMILIES: readonly Option[] = [
+  { value: 'Onest', label: 'Onest' },
+  { value: 'Inter', label: 'Inter' },
+  { value: 'system-ui', label: 'System' },
+  { value: 'Georgia', label: 'Georgia' },
+  { value: 'JetBrains Mono', label: 'JetBrains Mono' },
+];
+
+const FONT_WEIGHTS: readonly Option[] = [
+  { value: '300', label: 'Light' },
+  { value: '400', label: 'Regular' },
+  { value: '500', label: 'Medium' },
+  { value: '600', label: 'Semibold' },
+  { value: '700', label: 'Bold' },
+];
+
+const TEXT_ALIGNS: readonly Option[] = [
+  { value: 'left', label: 'Left' },
+  { value: 'center', label: 'Center' },
+  { value: 'right', label: 'Right' },
+  { value: 'justify', label: 'Justify' },
+];
+
+/** Segmented text-align control. */
+function AlignButtons({ value, onCommit }: { value: string; onCommit: (value: string) => void }) {
+  return (
+    <div className="border-border bg-surface grid grid-cols-4 gap-px overflow-hidden rounded-lg border">
+      {TEXT_ALIGNS.map((a) => (
+        <button
+          key={a.value}
+          type="button"
+          title={a.label}
+          aria-label={a.label}
+          aria-pressed={value === a.value}
+          onClick={() => onCommit(a.value)}
+          className={`h-[28px] text-[11px] ${
+            value === a.value ? 'bg-brand text-white' : 'text-muted hover:text-ink'
+          }`}
+        >
+          {a.label[0]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="text-faint mb-2.5 text-[10.5px] font-bold uppercase tracking-[0.08em]">
@@ -85,7 +201,12 @@ function SingleInspector({ model }: { model: Extract<Inspection, { mode: 'single
           </div>
         )}
         <div className="grid grid-cols-2 gap-2">
-          <Field label="∠" value={Math.round(model.rotation)} unit="°" readOnly />
+          <Field
+            label="∠"
+            value={Math.round(model.rotation)}
+            unit="°"
+            onCommit={(deg) => controller.setRotation(id, deg)}
+          />
           <Field
             label="%"
             value={Math.round(model.opacity * 100)}
@@ -101,24 +222,81 @@ function SingleInspector({ model }: { model: Extract<Inspection, { mode: 'single
           <Divider />
           <div className="px-3.5">
             <SectionLabel>Fill</SectionLabel>
-            <div className="border-border bg-surface flex items-center gap-2.5 rounded-lg border px-2.5 py-1.5">
-              <span
-                aria-hidden="true"
-                className="h-[22px] w-[22px] flex-none rounded-md border border-white/15"
-                style={{ backgroundColor: model.fill }}
-              />
-              <input
-                type="text"
-                key={model.fill}
-                defaultValue={model.fill}
-                aria-label="Fill"
-                onBlur={(e) => controller.setFill(id, e.currentTarget.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') controller.setFill(id, e.currentTarget.value);
-                }}
-                className="text-ink flex-1 bg-transparent font-mono text-xs outline-none"
+            <ColorRow label="Fill" value={model.fill} onCommit={(c) => controller.setFill(id, c)} />
+          </div>
+        </>
+      )}
+
+      {model.stroke !== null && (
+        <>
+          <Divider />
+          <div className="px-3.5">
+            <SectionLabel>Stroke</SectionLabel>
+            <ColorRow
+              label="Stroke"
+              value={model.stroke.color}
+              onCommit={(c) => controller.setProperty(id, 'stroke', c)}
+            />
+            <div className="mt-2">
+              <Field
+                label="W"
+                value={model.stroke.width}
+                unit="px"
+                onCommit={(w) => controller.setProperty(id, 'strokeWidth', Math.max(0, w))}
               />
             </div>
+          </div>
+        </>
+      )}
+
+      {model.text !== null && (
+        <>
+          <Divider />
+          <div className="px-3.5">
+            <SectionLabel>Typography</SectionLabel>
+            <div className="mb-2">
+              <Select
+                label="Font"
+                value={model.text.fontFamily}
+                options={FONT_FAMILIES}
+                onCommit={(v) => controller.setProperty(id, 'fontFamily', v)}
+              />
+            </div>
+            <div className="mb-2 grid grid-cols-2 gap-2">
+              <Field
+                label="Size"
+                value={model.text.fontSize}
+                unit="px"
+                onCommit={(v) => controller.setProperty(id, 'fontSize', Math.max(1, v))}
+              />
+              <Select
+                label="Wt"
+                value={String(model.text.fontWeight)}
+                options={FONT_WEIGHTS}
+                onCommit={(v) => {
+                  const weight = Number.parseInt(v, 10);
+                  if (Number.isFinite(weight)) controller.setProperty(id, 'fontWeight', weight);
+                }}
+              />
+            </div>
+            <div className="mb-2.5 grid grid-cols-2 gap-2">
+              <Field
+                label="Line"
+                value={model.text.lineHeight}
+                unit="px"
+                onCommit={(v) => controller.setProperty(id, 'lineHeight', Math.max(0, v))}
+              />
+              <Field
+                label="Spc"
+                value={model.text.letterSpacing}
+                unit="px"
+                onCommit={(v) => controller.setProperty(id, 'letterSpacing', v)}
+              />
+            </div>
+            <AlignButtons
+              value={model.text.textAlign}
+              onCommit={(v) => controller.setProperty(id, 'textAlign', v)}
+            />
           </div>
         </>
       )}

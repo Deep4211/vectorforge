@@ -19,6 +19,7 @@ function buildCommands(): readonly Command[] {
     { id: 'tool-move', title: 'Move tool', run: (c) => c.setTool('move') },
     { id: 'tool-rectangle', title: 'Rectangle tool', run: (c) => c.setTool('rectangle') },
     { id: 'tool-ellipse', title: 'Ellipse tool', run: (c) => c.setTool('ellipse') },
+    { id: 'tool-line', title: 'Line tool', run: (c) => c.setTool('line') },
     { id: 'tool-frame', title: 'Frame tool', run: (c) => c.setTool('frame') },
     { id: 'tool-text', title: 'Text tool', run: (c) => c.setTool('text') },
     { id: 'delete', title: 'Delete selection', run: (c) => c.deleteSelection() },

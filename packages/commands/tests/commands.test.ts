@@ -18,6 +18,7 @@ import {
   ReorderCommand,
   ReparentCommand,
   ResizeNodeCommand,
+  RotateNodeCommand,
   SetPropertyCommand,
   UngroupCommand,
 } from '@vectorforge/commands';
@@ -63,6 +64,11 @@ describe('command invertibility (CMD-1)', () => {
   it('ResizeNodeCommand', () => {
     const { scene, ctx } = setup();
     expectInvertible(scene, ctx, new ResizeNodeCommand('r', { w: 40, h: 25 }));
+  });
+
+  it('RotateNodeCommand', () => {
+    const { scene, ctx } = setup();
+    expectInvertible(scene, ctx, new RotateNodeCommand('r', 30));
   });
 
   it('ResizeNodeCommand throws on a node without size', () => {
@@ -176,5 +182,28 @@ describe('toOp lowering (CMD-8)', () => {
       toIndex: 1,
     });
     expect(new UngroupCommand('g').toOp()).toEqual({ kind: 'ungroup', id: 'g' });
+    expect(new RotateNodeCommand('r', 45).toOp()).toEqual({
+      kind: 'rotate-node',
+      id: 'r',
+      to: 45,
+    });
+  });
+});
+
+describe('RotateNodeCommand coalescing (CMD-3)', () => {
+  it('merges consecutive rotations of the same node, keeping the original angle for undo', () => {
+    const { scene, ctx } = setup();
+    const first = new RotateNodeCommand('r', 30);
+    first.execute(ctx); // rotation 0 → 30
+    const merged = first.mergeWith(new RotateNodeCommand('r', 80));
+    expect(merged).not.toBeNull();
+    merged!.execute(ctx); // 30 → 80
+    expect(scene.getOrThrow('r').transform.rotation).toBe(80);
+    merged!.undo(ctx); // restores the pre-gesture angle (0), not the 30 midpoint
+    expect(scene.getOrThrow('r').transform.rotation).toBe(0);
+  });
+
+  it('does not merge a rotation of a different node', () => {
+    expect(new RotateNodeCommand('r', 10).mergeWith(new RotateNodeCommand('x', 20))).toBeNull();
   });
 });

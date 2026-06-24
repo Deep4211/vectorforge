@@ -29,6 +29,7 @@ export {
   inspect,
   type LayerItem,
   type Inspection,
+  type TextStyle,
   type TextEditTarget,
 } from './view-models';
 export { resolveCursor, type CursorContext } from './cursor';

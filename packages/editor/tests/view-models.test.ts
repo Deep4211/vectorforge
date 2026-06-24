@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Rectangle } from '@vectorforge/geometry';
+import { Rectangle, Vector2 } from '@vectorforge/geometry';
 import { createSequentialIdGenerator } from '@vectorforge/document';
 import { EditorController } from '@vectorforge/editor';
 
@@ -51,5 +51,42 @@ describe('EditorController.inspection — inspector view model', () => {
     if (model.mode !== 'multi') throw new Error('expected multi');
     expect(model.count).toBe(2);
     expect(model.ids).toEqual([a, b]);
+  });
+
+  it('exposes stroke (color + width) for a line, and no typography', () => {
+    const c = controller();
+    c.createLine(new Vector2(0, 0), new Vector2(40, 0));
+    const model = c.inspection();
+    if (model.mode !== 'single') throw new Error('expected single');
+    expect(model.stroke).toEqual({ color: '#000000', width: 1 });
+    expect(model.text).toBeNull();
+    expect(model.fill).toBeNull();
+  });
+
+  it('exposes typography for a text node, and no stroke', () => {
+    const c = controller();
+    c.createText(new Vector2(5, 5), 'hi');
+    const model = c.inspection();
+    if (model.mode !== 'single') throw new Error('expected single');
+    expect(model.stroke).toBeNull();
+    expect(model.text).toEqual({
+      fontFamily: 'Onest',
+      fontWeight: 400,
+      fontSize: 16,
+      lineHeight: 20,
+      letterSpacing: 0,
+      textAlign: 'left',
+    });
+  });
+
+  it('setRotation is reflected in the inspection model and is undoable', () => {
+    const c = controller();
+    const id = c.createShape('rectangle', new Rectangle(0, 0, 10, 10));
+    c.setRotation(id, 45);
+    const model = c.inspection();
+    if (model.mode !== 'single') throw new Error('expected single');
+    expect(model.rotation).toBe(45);
+    c.undo();
+    expect(c.scene.getOrThrow(id).transform.rotation).toBe(0);
   });
 });

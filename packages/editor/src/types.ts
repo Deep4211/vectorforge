@@ -1,4 +1,4 @@
-import type { Vector2, Viewport } from '@vectorforge/geometry';
+import type { Point, Vector2, Viewport } from '@vectorforge/geometry';
 import type { NodeId } from '@vectorforge/document';
 import type { HandlePosition } from './handles';
 
@@ -12,7 +12,7 @@ import type { HandlePosition } from './handles';
  * types reach this layer (EDT-1).
  */
 
-export type ToolId = 'move' | 'frame' | 'rectangle' | 'ellipse' | 'text' | 'hand';
+export type ToolId = 'move' | 'frame' | 'rectangle' | 'ellipse' | 'line' | 'text' | 'hand';
 
 export interface Modifiers {
   readonly shift: boolean;
@@ -66,13 +66,24 @@ export interface RectLikeXYWH {
   readonly h: number;
 }
 
-/** Ephemeral preview produced during a gesture (rendered as an overlay; never persisted). */
-export interface Draft {
-  /** `create` = a shape being drawn; `marquee` = a selection rectangle. */
-  readonly type: 'create' | 'marquee';
-  /** World-space rectangle [x, y, w, h]. */
-  readonly rect: RectLikeXYWH;
-}
+/**
+ * Ephemeral preview produced during a gesture (rendered as an overlay; never
+ * persisted). A `create`/`marquee` draft is a world-space rectangle; a `line`
+ * draft is the two endpoints of a line being drawn.
+ */
+export type Draft =
+  | {
+      /** `create` = a box shape being drawn; `marquee` = a selection rectangle. */
+      readonly type: 'create' | 'marquee';
+      /** World-space rectangle [x, y, w, h]. */
+      readonly rect: RectLikeXYWH;
+    }
+  | {
+      readonly type: 'line';
+      /** World-space endpoints of the line being drawn. */
+      readonly a: Point;
+      readonly b: Point;
+    };
 
 /** The observable editor state (ephemeral; the document is held separately as a `SceneGraph`). */
 export interface EditorState {
