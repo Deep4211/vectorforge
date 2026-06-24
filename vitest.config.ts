@@ -47,7 +47,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html'],
       include: ['packages/*/src/**/*.{ts,tsx}', 'apps/web/src/**/*.{ts,tsx}'],
-      exclude: ['**/index.ts', '**/*.d.ts', '**/types.ts'],
+      exclude: ['**/index.ts', '**/*.d.ts', '**/types.ts', '**/tool.ts'],
     },
   },
 });

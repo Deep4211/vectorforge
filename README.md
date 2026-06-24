@@ -17,12 +17,12 @@ an infinite zoomable canvas, a layer-based document model, reusable components,
 real-time multiplayer, commenting, version history, and developer handoff into a
 single tool that runs entirely in the browser with no install.
 
-This repository is the engineering monorepo. **Sprints 0–3 are complete:** the
-production-grade toolchain (Sprint 0), the pure immutable `@vectorforge/geometry`
-math library (Sprint 1), the `@vectorforge/document` scene graph (Sprint 2), and
-`@vectorforge/commands` — the reversible command + undo/redo `HistoryManager`
-that is the single pathway for every document mutation (Sprint 3). Work continues
-per [docs/ROADMAP.md](./docs/ROADMAP.md).
+This repository is the engineering monorepo. **Sprints 0–4 are complete:** the
+toolchain (0), `@vectorforge/geometry` (1), the `@vectorforge/document` scene
+graph (2), `@vectorforge/commands` undo/redo (3), and `@vectorforge/editor` — the
+framework-independent editor core (controller, observable store, selection,
+viewport, tool state machine, hit-testing) that wires document + commands into a
+headless, driveable editor (4). The app still has no canvas — rendering is Sprint 5. Work continues per [docs/ROADMAP.md](./docs/ROADMAP.md).
 
 ## Vision
 
@@ -175,7 +175,7 @@ Target one package with pnpm filters, e.g. `pnpm --filter @vectorforge/web dev`.
 | **1** ✅ | Geometry engine (Vector2/Matrix3/Rect, coordinate pipeline)        |
 | **2** ✅ | Document model & scene graph                                       |
 | **3** ✅ | Command system & history (undo/redo)                               |
-| 4        | Editor core & state management                                     |
+| **4** ✅ | Editor core & state management                                     |
 | 5        | Rendering engine (Canvas2D behind `IRenderer`)                     |
 | 6        | Interaction system (selection, transform, shortcuts)               |
 | 7        | UI integration (React chrome)                                      |

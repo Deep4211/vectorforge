@@ -1,13 +1,37 @@
 /**
  * `@vectorforge/editor` — public API entry.
  *
- * Editor core (application layer): the EditorController, the framework-agnostic
- * EditorStore, the tool state machine, the interaction engine, viewport and
- * selection (ARCHITECTURE.md §4). Implemented in Sprint 4 (see docs/ROADMAP.md).
+ * The editor core (application layer): the framework-independent
+ * `EditorController` + `EditorStore`, the tool state machine, selection,
+ * viewport, and hit-testing (ARCHITECTURE.md §4; ENGINE_CONTRACT.md §4). It turns
+ * user intentions into commands against the document and projects state back for
+ * the UI to render — but imports no React or DOM (EDT-1).
  *
- * Until then this entry exports only the package identity so the build, lint
- * and test toolchain can be validated end to end.
+ * Import only through this entry (ENGINE_CONTRACT.md §6 DEP-5).
  */
+
+export { EditorController, type EditorControllerOptions } from './controller';
+export { EditorStore } from './store';
+export { hitTest, marqueeHits, type HitOptions } from './hit-test';
+export { type Tool, type ToolHost } from './tool';
+export { createDefaultTools } from './tools';
+export {
+  type ToolId,
+  type Modifiers,
+  type PointerButton,
+  type PointerKind,
+  type EngineInput,
+  type KeyInput,
+  type SelectionState,
+  type InteractionPhase,
+  type Draft,
+  type EditorState,
+  type RenderScheduler,
+  NO_MODIFIERS,
+  EMPTY_SELECTION,
+} from './types';
+
+/** Package identity (stable across the project; consumed by the app shell). */
 export const PACKAGE_ID = '@vectorforge/editor' as const;
 
 /** Architectural layer (see docs/ENGINE_CONTRACT.md §6). */

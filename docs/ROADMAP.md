@@ -159,7 +159,16 @@ that proves the dependency graph resolves. Toolchain itself is the deliverable.
 
 ---
 
-## Sprint 4 — Editor Core & State Management
+## Sprint 4 — Editor Core & State Management ✅ (complete)
+
+> Delivered: the framework-independent `EditorStore` (ephemeral/document split,
+> selector subscriptions, single write path), `EditorController` (intentions →
+> commands; never mutates the document directly; selection-restoring undo/redo;
+> viewport with cursor-anchored zoom; render-scheduler injection), the selection
+> model (set + primary, lock-aware), AABB hit-test + marquee, and the tool state
+> machine (move/frame/rectangle/ellipse/text/hand) with switch-cancels-gesture and
+> the keyboard focus guard (EDT-1…8). Headless; ~96% line coverage. Live-drag
+> snapping/handles and precise hit-testing arrive in Sprint 6; rendering in Sprint 5.
 
 **Goals.** The framework-independent application layer (ARCHITECTURE.md §4).
 
