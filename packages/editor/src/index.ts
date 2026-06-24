@@ -24,7 +24,13 @@ export {
   type ResizeOptions,
 } from './handles';
 export { alignmentGuides, type AlignmentGuide, type GuideOrientation } from './guides';
-export { buildOutline, inspect, type LayerItem, type Inspection } from './view-models';
+export {
+  buildOutline,
+  inspect,
+  type LayerItem,
+  type Inspection,
+  type TextEditTarget,
+} from './view-models';
 export { resolveCursor, type CursorContext } from './cursor';
 // Document identity types the presentation layer needs (it imports only editor + shared).
 export type { NodeId, NodeType } from '@vectorforge/document';

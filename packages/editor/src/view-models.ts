@@ -37,6 +37,22 @@ export type Inspection =
     }
   | { readonly mode: 'multi'; readonly count: number; readonly ids: readonly NodeId[] };
 
+/** The inline text-editor overlay's target: a text node's content, world origin, and type face. */
+export interface TextEditTarget {
+  readonly id: NodeId;
+  readonly content: string;
+  readonly worldX: number;
+  readonly worldY: number;
+  readonly width: number | null;
+  readonly fontFamily: string;
+  readonly fontWeight: number;
+  readonly fontSize: number;
+  readonly lineHeight: number;
+  readonly letterSpacing: number;
+  readonly textAlign: string;
+  readonly fill: string;
+}
+
 function sizeOf(node: SceneNode): { readonly w: number; readonly h: number } | null {
   const size = (node as { size?: { readonly w: number; readonly h: number } | null }).size;
   return size ?? null;

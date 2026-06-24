@@ -30,6 +30,8 @@ export interface ToolHost {
   moveSelectionBy(delta: Vector2): void;
   createShape(kind: 'rectangle' | 'ellipse' | 'frame', rect: Rectangle): NodeId;
   createText(world: Point): NodeId;
+  /** Enter inline text editing on a node; returns false for non-text nodes. */
+  beginTextEdit(id: NodeId): boolean;
   setGesture(phase: InteractionPhase, draft: Draft | null): void;
   setDragOffset(offset: Vector2): void;
   cancelGesture(): void;

@@ -170,12 +170,13 @@ class DrawTool implements Tool {
   }
 }
 
-/** Place a text node at the click point. */
+/** Place a text node at the click point and immediately enter inline editing. */
 class TextTool implements Tool {
   readonly id: ToolId = 'text';
 
   onPointerDown(input: EngineInput, host: ToolHost): void {
-    host.createText(input.world);
+    const id = host.createText(input.world);
+    host.beginTextEdit(id);
   }
 
   onPointerMove(): void {}

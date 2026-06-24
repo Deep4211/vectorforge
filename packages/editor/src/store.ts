@@ -27,6 +27,7 @@ function initialState(viewport: Viewport): EditorState {
     dragOffset: null,
     activeHandle: null,
     resizePreview: null,
+    editingTextId: null,
     documentVersion: 0,
     dirty: false,
   };

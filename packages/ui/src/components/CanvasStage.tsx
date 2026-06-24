@@ -1,4 +1,9 @@
-import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import { Vector2 } from '@vectorforge/editor';
 import { useController, useEngine } from '../context';
 import { toEngineInput } from '../input/normalize';
@@ -116,6 +121,9 @@ export function CanvasStage() {
     controller.handlePointerUp(toEngineInput(e.nativeEvent, rect(), controller.state.viewport));
     releasePointer(e.pointerId);
   };
+  const onDoubleClick = (e: ReactMouseEvent<HTMLCanvasElement>): void => {
+    controller.handleDoubleClick(toEngineInput(e.nativeEvent, rect(), controller.state.viewport));
+  };
 
   return (
     <div className="relative min-h-0 flex-1 overflow-hidden overscroll-none bg-[#0B0B0E]">
@@ -128,6 +136,7 @@ export function CanvasStage() {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={() => controller.handlePointerCancel()}
+        onDoubleClick={onDoubleClick}
         onContextMenu={(e) => e.preventDefault()}
       />
     </div>

@@ -33,6 +33,7 @@ export { Inspector } from './components/Inspector';
 export { ZoomControls } from './components/ZoomControls';
 export { Rulers } from './components/Rulers';
 export { SelectionOverlay } from './components/SelectionOverlay';
+export { TextEditorOverlay } from './components/TextEditorOverlay';
 export { Minimap } from './components/Minimap';
 export { BottomDock } from './components/BottomDock';
 export { CommandPalette } from './components/CommandPalette';

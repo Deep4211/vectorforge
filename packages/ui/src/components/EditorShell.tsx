@@ -6,6 +6,7 @@ import { LeftPanel } from './LeftPanel';
 import { CanvasStage } from './CanvasStage';
 import { Rulers } from './Rulers';
 import { SelectionOverlay } from './SelectionOverlay';
+import { TextEditorOverlay } from './TextEditorOverlay';
 import { Inspector } from './Inspector';
 import { ZoomControls } from './ZoomControls';
 import { Minimap } from './Minimap';
@@ -45,6 +46,7 @@ export function EditorShell() {
             <CanvasStage />
             <Rulers />
             <SelectionOverlay />
+            <TextEditorOverlay />
             <div className="absolute bottom-4 left-4 z-30">
               <ZoomControls />
             </div>

@@ -41,7 +41,13 @@ import {
   type HandlePosition,
 } from './handles';
 import { alignmentGuides, type AlignmentGuide } from './guides';
-import { buildOutline, inspect, type Inspection, type LayerItem } from './view-models';
+import {
+  buildOutline,
+  inspect,
+  type Inspection,
+  type LayerItem,
+  type TextEditTarget,
+} from './view-models';
 import { resolveCursor } from './cursor';
 import { createDefaultTools } from './tools';
 import type { Tool, ToolHost, TransformModifiers } from './tool';
@@ -255,10 +261,48 @@ export class EditorController implements ToolHost {
     const node = createText({
       id,
       content,
+      // A default box so the text is immediately hit-testable, selectable, and
+      // resizable (auto-fit-to-content measurement arrives with the text engine).
+      size: { w: 160, h: 24 },
       transform: new Transform(new Vector2(world.x, world.y), 0, Vector2.ONE),
     });
     this.commit(new CreateNodeCommand(node), [id]);
     return id;
+  }
+
+  // ---- inline text editing ------------------------------------------------
+
+  /** Enter inline edit on a text node (selects it). Returns false for non-text/missing nodes. */
+  beginTextEdit(id: NodeId): boolean {
+    if (!this.scene.has(id) || this.scene.getOrThrow(id).type !== 'text') return false;
+    this.select(id);
+    this.store.set({ editingTextId: id });
+    this.scheduler.requestRender();
+    return true;
+  }
+
+  /**
+   * Commit the edited text content (one history entry) and leave edit mode. An
+   * edit that leaves the text empty removes the node, so a click-but-don't-type
+   * never litters the document with empty text.
+   */
+  commitTextContent(id: NodeId, content: string): void {
+    if (this.scene.has(id)) {
+      const node = this.scene.getOrThrow(id);
+      if (node.type === 'text') {
+        if (content.trim() === '') this.commit(new DeleteNodeCommand(id), []);
+        else if (node.content !== content)
+          this.commit(new SetPropertyCommand(id, 'content', content));
+      }
+    }
+    this.endTextEdit();
+  }
+
+  /** Leave text-edit mode without committing (the content was already committed or abandoned). */
+  endTextEdit(): void {
+    if (this.state.editingTextId === null) return;
+    this.store.set({ editingTextId: null });
+    this.scheduler.requestRender();
   }
 
   deleteSelection(): void {
@@ -446,6 +490,13 @@ export class EditorController implements ToolHost {
     this.activeTool().onCancel(this);
   }
 
+  /** Double-click a text node to edit it inline (§8.2 — enter text edit). */
+  handleDoubleClick(input: EngineInput): void {
+    if (input.button !== 'primary') return;
+    const hit = hitTest(this.scene, input.world);
+    if (hit !== null && this.scene.getOrThrow(hit).type === 'text') this.beginTextEdit(hit);
+  }
+
   /** Keyboard shortcuts; suppressed in a text input (except Escape) and entirely mid-IME (EDT-8). */
   handleKeyboard(input: KeyInput): void {
     if (input.isComposing) return; // never act on keys that are composing an IME character
@@ -523,6 +574,29 @@ export class EditorController implements ToolHost {
   /** The inspector view model for the current selection (empty / single / multi). */
   inspection(): Inspection {
     return inspect(this.scene, this.state.selection);
+  }
+
+  /** The node + world origin + type for the inline text-editor overlay, or `null`. */
+  textEditTarget(): TextEditTarget | null {
+    const id = this.state.editingTextId;
+    if (id === null || !this.scene.has(id)) return null;
+    const node = this.scene.getOrThrow(id);
+    if (node.type !== 'text') return null;
+    const origin = this.scene.worldMatrix(id).transformPoint({ x: 0, y: 0 });
+    return {
+      id,
+      content: node.content,
+      worldX: origin.x,
+      worldY: origin.y,
+      width: node.size ? node.size.w : null,
+      fontFamily: node.fontFamily,
+      fontWeight: node.fontWeight,
+      fontSize: node.fontSize,
+      lineHeight: node.lineHeight,
+      letterSpacing: node.letterSpacing,
+      textAlign: node.textAlign,
+      fill: node.fill,
+    };
   }
 
   beginResize(handle: HandlePosition, world: Point): boolean {

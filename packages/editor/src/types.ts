@@ -90,6 +90,8 @@ export interface EditorState {
   readonly activeHandle: HandlePosition | null;
   /** Live world-rect preview of the primary node during a resize (before commit). */
   readonly resizePreview: RectLikeXYWH | null;
+  /** The text node currently being edited inline (drives the text-editor overlay), else `null`. */
+  readonly editingTextId: NodeId | null;
   /** Bumped whenever the document (scene graph) changes — lets selectors react. */
   readonly documentVersion: number;
   /** Unsaved document changes since the last save (set only by document mutations, EDT-2). */
