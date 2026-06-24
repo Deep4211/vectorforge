@@ -125,7 +125,16 @@ that proves the dependency graph resolves. Toolchain itself is the deliverable.
 
 ---
 
-## Sprint 3 — Command System & History
+## Sprint 3 — Command System & History ✅ (complete)
+
+> Delivered: the `ICommand` contract + `Command` base, `CommandContext`, and a
+> serializable `toOp()` lowering (CMD-8); commands for create, delete (with
+> subtree), move, resize, set-property, reorder, reparent, group (composite) and
+> ungroup; `CompositeCommand` (atomic, CMD-5); and the `HistoryManager` with
+> redo-invalidation (CMD-4), gesture coalescing (CMD-3) and bounded depth
+> (CMD-6). Per-command invertibility (CMD-1) and determinism (CMD-7) are tested.
+> ~90% line / 92% branch coverage. Selection restoration is deferred to the
+> editor layer (Sprint 4).
 
 **Goals.** The sole mutation pathway + undo/redo (ARCHITECTURE.md §10; PRD F-7).
 
